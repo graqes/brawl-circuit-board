@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brawl Circuit Board</title>
+<style>
+  :root {
+    --bg:#f6f6f4; --panel:#fff; --ink:#1d1d1f; --mute:#6b6b70; --line:#dcdcd6;
+    --accent:#2f5bea; --ok:#1f8a4c; --warn:#b7791f; --bad:#c0392b;
+    --chip-n:#dbe6ff; --chip-c:#ffe3c9; --chip-b:#e5d9ff; --chip-t:#e8e8e3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#16171a; --panel:#1f2125; --ink:#ececec; --mute:#9a9aa2; --line:#33353b;
+      --accent:#7b9bff; --ok:#4cc17f; --warn:#e0a548; --bad:#ee7b6e;
+      --chip-n:#26365e; --chip-c:#5a3b22; --chip-b:#3d2f63; --chip-t:#34363b; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,sans-serif; }
+  header { display:flex; align-items:center; gap:16px; padding:12px 16px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0; }
+  nav { display:flex; gap:4px; flex:1; }
+  button, select, input, textarea { font:inherit; color:inherit; }
+  button { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 10px; cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  main { max-width:1000px; margin:0 auto; padding:16px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  input, select, textarea { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+  input[type=text], input[type=email], input[type=password] { min-width:0; }
+  .grow { flex:1; min-width:180px; }
+  .task { display:grid; grid-template-columns:1fr auto; gap:6px 12px; padding:10px 12px; border-bottom:1px solid var(--line); }
+  .task:last-child { border-bottom:0; }
+  .task.done { opacity:.55; }
+  .title { font-weight:600; }
+  .meta { color:var(--mute); font-size:13px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .chip { border-radius:10px; padding:0 8px; font-size:12px; background:var(--chip-t); }
+  .chip.nathan { background:var(--chip-n); } .chip.cooper { background:var(--chip-c); } .chip.both { background:var(--chip-b); }
+  .ctl { display:flex; gap:6px; flex-wrap:wrap; align-items:flex-start; justify-content:flex-end; }
+  .ctl select { padding:2px 4px; font-size:13px; }
+  .note { font-size:13px; color:var(--mute); grid-column:1/-1; }
+  .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:8px 14px; border-radius:8px; max-width:90vw; }
+  .err { color:var(--bad); }
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .col h3 { font-size:13px; margin:0 0 6px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; }
+  .pcard { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px; margin-bottom:8px; font-size:14px; min-width:0; }
+  .pcard a { color:var(--accent); }
+  .pcard a.pname { color:var(--ink); font-weight:600; text-decoration:none; display:block; }
+  .pcard a.pname:hover { color:var(--accent); }
+  .pcard select { width:100%; max-width:100%; font-size:12px; padding:2px 4px; margin-top:6px; }
+  .fld { display:flex; flex-direction:column; gap:1px; font-size:11px; color:var(--mute); }
+  .fld select { font-size:13px; }
+  /* character panel */
+  .shade { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:10; }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(620px, 100vw); background:var(--bg); border-left:1px solid var(--line);
+    z-index:11; overflow-y:auto; padding:16px; box-shadow:-8px 0 24px rgba(0,0,0,.25); }
+  .drawer h2 { margin:0; font-size:20px; }
+  .drawer h3 { font-size:14px; margin:18px 0 6px; }
+  .drawer textarea { width:100%; resize:vertical; font-size:14px; }
+  .draft { display:grid; grid-template-columns:150px 1fr; gap:8px; align-items:start; margin-bottom:6px; }
+  .draft label { font-size:13px; padding-top:6px; color:var(--mute); }
+  .draft.filled label { color:var(--ink); font-weight:600; }
+  @media (max-width:560px) { .draft { grid-template-columns:1fr; } .draft label { padding-top:0; } }
+  @media (max-width:560px) { .task { grid-template-columns:1fr; } .ctl { justify-content:flex-start; } }
+  .scroll { overflow-x:auto; }
+  table.mx { border-collapse:collapse; font-size:12px; }
+  table.mx th, table.mx td { padding:0; border:1px solid var(--line); text-align:center; }
+  table.mx th { font-weight:500; color:var(--mute); background:var(--panel); }
+  table.mx thead th { writing-mode:vertical-rl; padding:4px 2px; height:92px; white-space:nowrap; vertical-align:bottom; text-align:left; }
+  table.mx th.name { writing-mode:horizontal-tb; transform:none; text-align:left; padding:2px 8px; position:sticky; left:0; z-index:1; white-space:nowrap; cursor:pointer; }
+  table.mx td { width:18px; height:18px; cursor:pointer; }
+  table.mx td.ok { background:var(--ok); } table.mx td.warn { background:var(--warn); }
+  table.mx td.fail { background:var(--bad); } table.mx td.na { background:transparent; }
+  table.mx td.sel { outline:2px solid var(--ink); outline-offset:-2px; }
+  table.mx th.grp { border-left:2px solid var(--mute); }
+  .legend { display:flex; gap:12px; font-size:13px; color:var(--mute); flex-wrap:wrap; }
+  .sw { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:-1px; margin-right:4px; }
+  table.st { border-collapse:collapse; width:100%; font-size:14px; }
+  table.st td, table.st th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; }
+  .dot.ok { background:var(--ok); }
+  .login { max-width:460px; margin:40px auto; }
+  .people { display:flex; gap:12px; margin:8px 0 4px; }
+  .people button.person { flex:1; padding:18px 12px; font-size:18px; font-weight:700; border-radius:10px; }
+  .people button.person.on { background:var(--panel); color:var(--ink); border-color:var(--accent); }
+  .sent { margin-top:12px; padding:10px 12px; border:1px solid var(--ok); border-radius:8px; }
+  .sent p { margin:4px 0 8px; color:var(--mute); font-size:14px; }
+  details.other { margin-top:18px; font-size:14px; color:var(--mute); }
+  details.other summary { cursor:pointer; margin-bottom:8px; }
+  dialog::backdrop { background:rgba(0,0,0,.4); }
+  dialog.card { border:1px solid var(--line); background:var(--panel); }
+  .typing { color:var(--ok); font-weight:400; font-size:12px; margin-left:6px; }
+  #here { gap:6px; }
+  #here .chip { display:inline-flex; align-items:center; padding:2px 8px; }
+  button.linkish { background:none; border:0; padding:0; text-align:left; cursor:pointer; font:inherit; font-weight:600; color:var(--ink); }
+  button.linkish:hover { color:var(--accent); text-decoration:underline; }
+  .group { padding:8px 12px 4px; font-weight:700; font-size:14px; background:var(--bg); border-bottom:1px solid var(--line); display:flex; gap:6px; align-items:baseline; }
+  a.clink { color:inherit; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:2px; }
+  a.clink:hover { color:var(--accent); text-decoration-color:var(--accent); }
+  button.chip.here { border:0; cursor:pointer; font:inherit; font-size:12px; color:var(--ink); }
+  button.chip.here:hover { outline:2px solid var(--accent); }
+  .flash { animation:flash 1.6s ease-out; }
+  @keyframes flash { 0%, 40% { box-shadow:0 0 0 3px var(--accent); } 100% { box-shadow:0 0 0 0 transparent; } }
+  .task.editing { background:var(--bg); outline:2px solid var(--accent); outline-offset:-2px; } .dot.warn { background:var(--warn); } .dot.fail { background:var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Brawl Circuit Board</h1>
+  <nav id="nav" hidden></nav>
+  <span id="here" class="row"></span>
+  <span id="who" class="meta"></span>
+  <button id="pw" hidden>Change password</button>
+  <button id="out" hidden>Sign out</button>
+</header>
+<main id="app"></main>
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="entities.js"></script>
+<script>
+const sb = supabase.createClient(SB.url, SB.key);
+const E = ENTITIES;
+const $ = (id) => document.getElementById(id);
+const PIPE = ['idea','model_found','in_works','finished','implemented'];
+const PIPE_LABEL = {idea:'Idea', model_found:'Model found', in_works:'In works', finished:'Finished, needs implementing', implemented:'Implemented'};
+const KINDS = ['fix','feature','anim','stage','skin','entrance','finalSmash','character','other'];
+const KIND_LABEL = { fix: 'Fix', feature: 'Feature', anim: 'Animation', stage: 'Stage', skin: 'Skin', entrance: 'Entrance',
+  finalSmash: 'Final Smash', character: 'New character', other: 'Other' };
+const STATUSES = ['todo','doing','done','dropped'];
+
+let me = null;            // 'nathan' | 'cooper'
+let tab = 'status';
+let view = 'mine';        // mine | nathan | cooper | team | all
+let showDone = false;
+// How the task list is ordered: by priority, or grouped by character / stage, or by kind. Remembered per browser.
+let sortBy = 'priority';
+try { sortBy = localStorage.getItem('board.sortBy') || 'priority'; } catch (e) {}
+let tasks = [], pipe = [], status = [], drafts = [];
+let openSlug = null;        // the character whose design panel is open (#c/<slug>)
+let drawerStale = false;    // data changed while someone was typing in the panel: redraw it when they leave the field
+// Same rule as the pipeline slug migration: letters and digits only, lower case.
+const slugify = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+let onlyProblems = false, picked = null;   // picked: {etype, id, key}
+let editing = null;         // id of the task open for editing
+let appStale = false;       // data changed while someone was typing in a task editor: redraw when they leave it
+let channel = null, others = [];   // live channel; presence of the other people on the board
+let sentPresence = '';
+
+// Status matrix columns: [check_key, short label, starts a group?]
+const SLOT_SHORT = ['Jab 1','Jab 2','Jab 3','Rapid','Rapid end','Dash atk','F tilt','U tilt','D tilt','F smash','U smash','D smash',
+  'N air','F air','B air','U air','D air','N spec','S spec','U spec','D spec','Grab','Dash grab','Pivot grab','Pummel',
+  'F throw','B throw','U throw','D throw','Get-up','Get-up (down)','Get-up (trip)','Ledge atk','Final Smash'];
+const FIGHTER_COLS = [
+  ['model', 'Model', true], ['basic:idle', 'Idle', true], ['basic:walk', 'Walk'], ['basic:run', 'Run'], ['basic:crouch', 'Crouch'], ['strides', 'Strides'],
+  ...E.slots.slice(0, SLOT_SHORT.length).map((label, i) => ['slot:' + label, SLOT_SHORT[i], i === 0]),
+  ['victory', 'Victory', true], ['entrance', 'Entrance'], ['applause', 'Applause'], ['wins_call', 'Wins call'], ['voice', 'Voice'],
+  ['wiki', 'Wiki'], ['combat_audit', 'Combat audit'],
+];
+const STAGE_COLS = [['type', 'Type'], ['3d', '3D'], ['thumb', 'Select picture'], ['roster', 'Stage select']];
+const CHECK_LABEL = Object.fromEntries([...FIGHTER_COLS, ...STAGE_COLS].map(([k, l]) => [k, k.startsWith('slot:') ? k.slice(5) : l]));
+
+// ---------- helpers ----------
+function h(tag, props = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k.startsWith('data-')) el.setAttribute(k, v);
+    else if (v !== undefined && v !== null && v !== false) el[k] = v;
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return el;
+}
+function toast(msg, bad) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' err' : ''); t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500);
+}
+function select(options, value, onchange) {
+  const s = h('select', { onchange: (e) => onchange(e.target.value) },
+    options.map(o => { const [v, l] = Array.isArray(o) ? o : [o, o]; return h('option', { value: v, selected: v == value }, l); }));
+  return s;
+}
+const entityName = (type, id) => (E[type] || []).find(x => x.id === id)?.name || id;
+const keyOf = (t) => [t.kind, t.entity_type, t.entity_id, t.slot || ''].join('/').toLowerCase();
+// Only jobs with one natural home are merged: a specific move slot, or the one entrance / Final Smash a fighter has.
+// Skins and free-form fixes with no move are never merged, since a fighter can have several.
+const mergeable = (t) => t.entity_id && ((t.slot && t.slot !== 'Skin' && t.slot !== 'Other') || t.kind === 'entrance' || t.kind === 'finalSmash');
+
+// The one scanner check a task is the job of: the task closes itself when the scan shows it ok (close_done_tasks in
+// the database). An own animation or Final Smash for a move slot, an entrance, a stage's 3D revamp. Left unset when the
+// check is already ok, so new work on something the scan counts as done isn't closed straight away.
+function checkKeyFor(t) {
+  const slotIx = E.slots.indexOf(t.slot);
+  let key = null;
+  if (t.entity_type === 'fighter' && slotIx >= 0 && slotIx < SLOT_SHORT.length && (t.kind === 'anim' || t.kind === 'finalSmash')) key = 'slot:' + t.slot;
+  else if (t.entity_type === 'fighter' && t.kind === 'entrance') key = 'entrance';
+  else if (t.entity_type === 'stage' && t.kind === 'stage' && /\b3d\b|revamp/i.test(t.title || '')) key = '3d';
+  if (!key || !t.entity_id) return null;
+  const r = status.find(s => s.entity_type === t.entity_type && s.entity_id === t.entity_id && s.check_key === key);
+  return r && r.state === 'ok' ? null : key;
+}
+
+// ---------- auth ----------
+async function boot() {
+  // Opened as a double-clicked file: if the dev server is running, use it instead (sign-in links and the remembered
+  // sign-in live at its address).
+  if (!WEB) {
+    try {
+      await fetch(DEV_URL, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(1500) });
+      location.replace(DEV_URL + location.hash);
+      return;
+    }
+    catch (e) { /* not running: show the sign-in screen, which says how to start it */ }
+  }
+  const back = new URLSearchParams(location.hash.slice(1) + '&' + location.search.slice(1));
+  const failed = back.get('error_description');
+  if (failed) history.replaceState(null, '', location.pathname);
+  const { data } = await sb.auth.getSession();
+  if (data.session) return start(data.session);
+  showLogin(failed ? 'Sign-in link failed: ' + failed.replace(/\+/g, ' ') + '. Click your name for a new one.' : undefined);
+}
+// Sign-in: "Log in as" Nathan or Cooper. The button emails that person a sign-in link (Supabase magic link); opening it
+// signs this browser in, and Supabase keeps it signed in (the session is stored and refreshed by itself). So this
+// screen only shows on a new browser, after Sign out, or if a sign-in runs out. The link comes back to this page's own
+// address, so it needs a web address (the dev server or a hosted copy): a double-clicked file can't receive it.
+// Password sign-in stays as a backup under "Other ways to sign in".
+const EMAIL_KEY = 'board.email';
+const WEB = location.protocol === 'http:' || location.protocol === 'https:';
+const DEV_URL = 'http://localhost:8080/tools/status-board/';
+const DEV_CMD = 'python3 .claude/serve.py';
+const emailKey = (name) => 'board.email.' + name.toLowerCase();
+function rememberedEmail(name) { try { return localStorage.getItem(emailKey(name)) || ''; } catch (e) { return ''; } }
+function rememberEmail(name, email) { try { localStorage.setItem(emailKey(name), email); localStorage.setItem(EMAIL_KEY, email); } catch (e) {} }
+
+function showLogin(msg, typed) {
+  $('nav').hidden = true; $('out').hidden = true; $('pw').hidden = true; $('who').textContent = ''; $('here').replaceChildren();
+  $('drawer')?.remove(); $('shade')?.remove();
+  let lastEmail = '';
+  try { lastEmail = localStorage.getItem(EMAIL_KEY) || ''; } catch (e) {}
+  const note = h('div');
+  const sendLink = async (name, email, btn) => {
+    if (btn) btn.disabled = true;
+    const { error } = await sb.auth.signInWithOtp({ email,
+      options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
+    if (btn) btn.disabled = false;
+    if (error) { note.replaceChildren(h('p', { class: 'err' }, "Couldn't send the link: " + error.message)); return; }
+    rememberEmail(name, email);
+    note.replaceChildren(h('div', { class: 'sent' },
+      h('strong', {}, 'Check ' + email + '.'),
+      h('p', {}, 'Open the "Your Magic Link" email from Supabase and click its link, in this browser. You stay signed in here after that.'),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', onclick: (e) => sendLink(name, email, e.target) }, 'Send it again'),
+        h('button', { type: 'button', onclick: () => askEmail(name) }, 'Use a different email'))));
+  };
+  // First time on this browser: ask for the email once (the board account's email).
+  const askEmail = (name) => {
+    const box = h('input', { type: 'email', name: 'email', autocomplete: 'email', required: true, class: 'grow',
+      placeholder: name + "'s email", value: rememberedEmail(name) });
+    const go = h('button', { type: 'submit', class: 'on' }, 'Send my link');
+    note.replaceChildren(h('form', { class: 'sent', onsubmit: (e) => { e.preventDefault(); sendLink(name, box.value.trim(), go); } },
+      h('strong', {}, name + ', what email is your board account on?'),
+      h('p', {}, 'Only needed once on this browser.'),
+      h('div', { class: 'row' }, box, go)));
+    box.focus();
+  };
+  const people = h('div', { class: 'people' }, (SB.team || []).map(name => {
+    const email = rememberedEmail(name);
+    const b = h('button', { type: 'button', class: 'person' + (email && email === lastEmail ? ' on' : ''),
+      onclick: () => !WEB ? needServer() : email ? sendLink(name, email, b) : askEmail(name) }, name);
+    return b;
+  }));
+  // Opened as a file with no dev server running (boot() moves to it when it is): say how to start it.
+  const needServer = () => note.replaceChildren(h('div', { class: 'sent' },
+    h('strong', {}, 'Open the board from its web address.'),
+    h('p', {}, 'The sign-in link has to come back to a web page, not a file. Use the board\'s link, or the dev server: from the repo folder run'),
+    h('pre', {}, DEV_CMD),
+    h('p', {}, 'then open ', h('a', { href: DEV_URL, class: 'clink' }, DEV_URL), '.')));
+
+  // Backup: email and password, as a form the browser can save and fill.
+  const email = h('input', { type: 'email', name: 'email', id: 'login-email', placeholder: 'email', autocomplete: 'username',
+    required: true, class: 'grow', value: typed ?? lastEmail });
+  const pass = h('input', { type: 'password', name: 'password', id: 'login-password', placeholder: 'password',
+    autocomplete: 'current-password', required: true, class: 'grow' });
+  const btn = h('button', { type: 'submit' }, 'Sign in');
+  const form = h('form', { method: 'post', action: '#', onsubmit: async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    const { data, error } = await sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
+    if (error) return showLogin(error.message, email.value);
+    try { localStorage.setItem(EMAIL_KEY, email.value.trim()); } catch (e) {}
+    start(data.session);
+  } }, h('div', { class: 'row' }, email, pass, btn));
+  const other = h('details', { class: 'other', open: typed !== undefined }, h('summary', {}, 'Other ways to sign in'), form);
+
+  $('app').replaceChildren(h('div', { class: 'card login' },
+    h('h2', {}, 'Log in as:'), people, note,
+    msg ? h('p', { class: 'err' }, msg) : null,
+    other));
+}
+$('out').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+// Change my password: to one you'll remember (and that the browser saves as the new one).
+$('pw').onclick = async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  const p1 = h('input', { type: 'password', name: 'new-password', autocomplete: 'new-password', placeholder: 'new password', required: true, class: 'grow' });
+  const p2 = h('input', { type: 'password', name: 'new-password-again', autocomplete: 'new-password', placeholder: 'the same again', required: true, class: 'grow' });
+  const msg = h('p', { class: 'err' });
+  const dlg = h('dialog', { class: 'card', style: 'max-width:420px; width:calc(100vw - 32px); color:var(--ink)' });
+  const form = h('form', { method: 'dialog', onsubmit: async (e) => {
+    e.preventDefault();
+    if (p1.value !== p2.value) { msg.textContent = "The two passwords don't match."; return; }
+    const { error } = await sb.auth.updateUser({ password: p1.value });
+    if (error) { msg.textContent = error.message; return; }
+    dlg.close(); toast('Password changed');
+  } },
+    // The username field tells password managers which account the new password belongs to.
+    h('input', { type: 'email', name: 'email', autocomplete: 'username', value: user?.email || '', hidden: true, readOnly: true }),
+    h('h2', { style: 'margin-top:0' }, 'Change password'),
+    h('div', { style: 'display:flex; flex-direction:column; gap:8px' }, p1, p2),
+    msg,
+    h('div', { class: 'row', style: 'justify-content:flex-end' },
+      h('button', { type: 'button', onclick: () => dlg.close() }, 'Cancel'), h('button', { type: 'submit', class: 'on' }, 'Change')));
+  dlg.append(form);
+  dlg.addEventListener('close', () => dlg.remove());
+  document.body.append(dlg);
+  dlg.showModal();
+  p1.focus();
+};
+
+// A sign-in that runs out (or is ended elsewhere) brings the sign-in form back instead of failing quietly.
+sb.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT' && me) { me = null; showLogin('You were signed out. Sign in again to carry on.'); }
+});
+
+async function start(session) {
+  const { data, error } = await sb.from('team_members').select('name').eq('email', session.user.email).maybeSingle();
+  if (error || !data) { await sb.auth.signOut(); return showLogin(session.user.email + ' is not on the team list.'); }
+  me = data.name.toLowerCase();
+  rememberEmail(data.name, session.user.email);
+  $('who').textContent = 'Signed in as ' + data.name;
+  $('out').hidden = false; $('pw').hidden = false;
+  buildNav();
+  await Promise.all([loadTasks(), loadPipe(), loadStatus(), loadDrafts(), loadEntities()]);
+  // A scan replaces hundreds of rows at once: wait for it to settle before reloading.
+  let statusTimer = null;
+  if (channel) await sb.removeChannel(channel);
+  channel = sb.channel('board', { config: { presence: { key: me } } });
+  channel
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, async () => { await loadTasks(); render(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pipeline' }, async () => { await loadPipe(); render(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'move_drafts' }, async () => { await loadDrafts(); render(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'feature_status' }, () => {
+      clearTimeout(statusTimer); statusTimer = setTimeout(async () => { await loadStatus(); render(); }, 1500);
+    })
+    .on('presence', { event: 'sync' }, () => {
+      const st = channel.presenceState();
+      others = Object.entries(st).filter(([k]) => k !== me).map(([, metas]) => metas[metas.length - 1]);
+      showPresence();
+    })
+    .subscribe(st => { if (st === 'SUBSCRIBED') { sentPresence = ''; sendPresence(); } });
+  window.removeEventListener('hashchange', route);
+  window.addEventListener('hashchange', route);
+  route();
+}
+function route() {
+  const m = location.hash.match(/^#c\/([a-z0-9]+)$/);
+  openSlug = m ? m[1] : null;
+  render();
+}
+function buildNav() {
+  const nav = $('nav'); nav.hidden = false;
+  nav.replaceChildren(...[['status', 'Status'], ['tasks', 'Tasks'], ['pipeline', 'New characters']].map(([id, label]) =>
+    h('button', { class: tab === id ? 'on' : '', onclick: () => { tab = id; buildNav(); render(); } }, label)));
+}
+
+// ---------- data ----------
+async function loadTasks() {
+  const { data, error } = await sb.from('tasks').select('*').is('merged_into', null).order('created_at');
+  if (error) return toast(error.message, true);
+  tasks = data;
+}
+async function loadPipe() {
+  const { data, error } = await sb.from('pipeline').select('*').order('name');
+  if (error) return toast(error.message, true);
+  pipe = data;
+}
+// Fighter and stage names from the last scan (the entities table): a hosted copy of the page lists fighters added
+// since it was published. The names bundled in entities.js stand in until then.
+async function loadEntities() {
+  const { data, error } = await sb.from('entities').select('*').order('id');
+  if (error || !data?.length) return;
+  E.fighter = data.filter(r => r.entity_type === 'fighter').map(({ id, name }) => ({ id, name }));
+  E.stage = data.filter(r => r.entity_type === 'stage').map(({ id, name }) => ({ id, name }));
+}
+async function loadDrafts() {
+  const { data, error } = await sb.from('move_drafts').select('*');
+  if (error) return toast(error.message, true);
+  drafts = data;
+}
+async function patchPipe(id, patch) {
+  const { error } = await sb.from('pipeline').update(patch).eq('id', id);
+  if (error) toast(error.message, true);
+}
+async function saveDraft(slug, slot, body) {
+  const { error } = body.trim()
+    ? await sb.from('move_drafts').upsert({ fighter_id: slug, slot, body: body.trim() })
+    : await sb.from('move_drafts').delete().eq('fighter_id', slug).eq('slot', slot);
+  if (error) toast(error.message, true);
+}
+async function loadStatus() {
+  // More rows than one request returns (the API caps at 1000): page through them.
+  const all = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from('feature_status').select('*').range(from, from + 999);
+    if (error) return toast(error.message, true);
+    all.push(...data);
+    if (data.length < 1000) break;
+  }
+  status = all;
+}
+async function patchTask(id, patch) {
+  const { error } = await sb.from('tasks').update(patch).eq('id', id);
+  if (error) toast(error.message, true);
+}
+
+// Add a task. The same job (kind + fighter/stage + move slot) entered twice becomes one task:
+// the second entry adds a note and keeps both people's priorities.
+async function addTask(t) {
+  t.dedupe_key = mergeable(t) ? keyOf(t) : null;
+  if (t.check_key === undefined) t.check_key = checkKeyFor(t);
+  const first = { by: me, at: new Date().toISOString(), text: t.note || '' };
+  const row = { ...t, notes: t.note ? [first] : [] };
+  delete row.note;
+  const { error } = await sb.from('tasks').insert(row);
+  if (!error) return toast('Added');
+  if (error.code !== '23505') return toast(error.message, true);
+  const { data: old } = await sb.from('tasks').select('*').eq('dedupe_key', t.dedupe_key).is('merged_into', null).single();
+  const patch = {
+    notes: [...(old.notes || []), { by: me, at: first.at, text: (t.note ? t.note + ' ' : '') + '(entered again, merged)' }],
+  };
+  if (t.priority_nathan) patch.priority_nathan = t.priority_nathan;
+  if (t.priority_cooper) patch.priority_cooper = t.priority_cooper;
+  if (t.owner !== 'team' && old.owner !== t.owner) patch.owner = old.owner === 'team' ? t.owner : 'both';
+  if (t.check_key && !old.check_key) patch.check_key = t.check_key;
+  await patchTask(old.id, patch);
+  toast('Already on the board: merged into "' + old.title + '"');
+}
+
+// ---------- render ----------
+const typingIn = (el) => el && /INPUT|TEXTAREA|SELECT/.test(el.tagName) && el.type !== 'checkbox';
+function render() {
+  // Never redraw a task editor under someone's cursor: live updates wait until they leave it.
+  const a = document.activeElement;
+  if (typingIn(a) && a.closest('.keep') && $('app').contains(a)) appStale = true;
+  else {
+    appStale = false;
+    $('app').replaceChildren(tab === 'status' ? statusView() : tab === 'tasks' ? tasksView() : pipelineView());
+  }
+  renderDrawer();
+  sendPresence();
+}
+$('app').addEventListener('focusout', () => setTimeout(() => { if (appStale && !document.activeElement?.closest?.('.keep')) render(); }, 0));
+
+// ---------- who's here (Supabase presence) ----------
+// Each person shares their tab, the character panel they have open and the box they're typing in.
+let myField = null;
+function sendPresence() {
+  if (!channel || channel.state !== 'joined') return;
+  const state = { name: me, tab, slug: openSlug, field: myField, task: editing };
+  const s = JSON.stringify(state);
+  if (s === sentPresence) return;
+  sentPresence = s;
+  channel.track(state);
+}
+function typingAt(field) { myField = field; sendPresence(); }
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const TAB_LABEL = { status: 'Status', tasks: 'Tasks', pipeline: 'New characters' };
+// Take me to where someone else is: their tab, the character page they have open, the box or task they're on.
+function goTo(p) {
+  if (p.tab && TAB_LABEL[p.tab]) tab = p.tab;
+  if (tab === 'tasks' && p.task) { view = 'all'; if (!tasks.find(t => t.id === p.task && isOpen(t))) showDone = true; }
+  buildNav();
+  const hash = p.slug ? '#c/' + p.slug : '';
+  if (location.hash !== hash) { if (hash) location.hash = hash; else { history.replaceState(null, '', location.pathname); openSlug = null; render(); } }
+  else render();
+  setTimeout(() => {
+    const el = p.field ? document.querySelector('#drawer [data-field="' + CSS.escape(p.field) + '"]')
+      : p.task ? $('task-' + p.task) : null;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
+  }, 60);
+}
+function showPresence() {
+  const here = $('here');
+  here.replaceChildren(...others.map(p => h('button', { class: 'chip here ' + p.name, onclick: () => goTo(p),
+    title: 'Go to where ' + cap(p.name) + ' is: ' + (TAB_LABEL[p.tab] || p.tab) + (p.field ? ', typing in ' + p.field : '') },
+    h('span', { class: 'dot ok' }), cap(p.name) + ' is here' + (p.slug ? ' · ' + (pipe.find(x => x.slug === p.slug)?.name || entityName('fighter', p.slug)) : ''))));
+  // In the open character panel: who else has it open, and where they're typing.
+  const bar = $('here-bar');
+  if (!bar) return;
+  const same = others.filter(p => p.slug === openSlug);
+  bar.replaceChildren(...same.map(p => h('div', { class: 'meta' }, h('span', { class: 'dot ok' }),
+    cap(p.name) + (p.field ? ' is typing in ' + p.field : ' is looking at this too'))));
+  for (const lab of document.querySelectorAll('#drawer [data-field]')) {
+    const who = same.filter(p => p.field === lab.dataset.field).map(p => cap(p.name));
+    lab.querySelector('.typing').textContent = who.length ? who.join(', ') + ' typing…' : '';
+  }
+}
+
+// ---------- character design panel ----------
+function renderDrawer() {
+  const old = $('drawer');
+  // Never redraw under someone's cursor: live updates wait until they leave the field.
+  if (old && old.contains(document.activeElement) && /TEXTAREA|INPUT/.test(document.activeElement.tagName)) { drawerStale = true; return; }
+  drawerStale = false;
+  old?.remove(); $('shade')?.remove();
+  if (!openSlug) return;
+  const close = () => { history.replaceState(null, '', location.pathname); openSlug = null; renderDrawer(); };
+  const p = pipe.find(x => x.slug === openSlug);
+  const fighter = E.fighter.find(f => f.id === openSlug);
+  const name = p?.name || fighter?.name || openSlug;
+  const panel = h('aside', { id: 'drawer', class: 'drawer', onfocusout: () => setTimeout(() => drawerStale && renderDrawer(), 0) });
+  panel.append(h('div', { class: 'row', style: 'justify-content:space-between' },
+    h('h2', {}, name),
+    h('div', { class: 'row' },
+      h('a', { href: '#c/' + openSlug, target: '_blank', class: 'meta', title: 'Open this character in its own tab' }, 'Open in new tab'),
+      h('button', { onclick: close }, 'Close'))),
+    h('div', { id: 'here-bar', style: 'margin-top:6px' }));
+
+  // Pipeline: stage, model link, notes.
+  if (p) {
+    const model = h('input', { type: 'text', value: p.model_url || '', placeholder: 'Model link', class: 'grow',
+      onchange: e => patchPipe(p.id, { model_url: e.target.value.trim() || null }) });
+    panel.append(h('div', { class: 'row', style: 'margin-top:10px' },
+      h('label', { class: 'fld' }, 'Stage', select(PIPE.map(s => [s, PIPE_LABEL[s]]), p.stage, v => patchPipe(p.id, { stage: v }))),
+      h('label', { class: 'fld grow' }, 'Model', model),
+      p.model_url && h('a', { href: p.model_url, target: '_blank', rel: 'noopener noreferrer', style: 'color:var(--accent)' }, 'open')));
+    panel.append(h('h3', { 'data-field': 'Notes' }, 'Notes', h('span', { class: 'typing' })),
+      h('textarea', { rows: 3, value: p.notes || '', placeholder: 'Who they are, look, ideas...', onchange: e => patchPipe(p.id, { notes: e.target.value }),
+        onfocus: () => typingAt('Notes'), onblur: () => typingAt(null) }));
+  }
+
+  // In the game already: what the scan says is still missing.
+  if (fighter) {
+    const rows = status.filter(r => r.entity_type === 'fighter' && r.entity_id === openSlug && (r.state === 'fail' || r.state === 'warn'));
+    panel.append(h('h3', {}, 'In the game: ' + rows.length + ' thing' + (rows.length === 1 ? '' : 's') + ' to finish'));
+    for (const r of rows) panel.append(h('div', { class: 'meta', style: 'margin:2px 0' },
+      h('span', { class: 'dot ' + r.state }), (CHECK_LABEL[r.check_key] || r.check_key) + (r.detail ? ': ' + r.detail : '')));
+  }
+
+  // Open tasks, plus a quick add.
+  const open = openTasksFor('fighter', openSlug);
+  panel.append(h('h3', {}, 'Open tasks (' + open.length + ')'));
+  for (const t of open) panel.append(h('div', { class: 'meta', style: 'margin:3px 0' },
+    h('span', { class: 'chip ' + t.owner }, t.owner), h('span', { class: 'chip' }, KIND_LABEL[t.kind] || t.kind), t.title + (t.slot ? ' · ' + t.slot : '')));
+  const tTitle = h('input', { type: 'text', placeholder: 'New task for ' + name, class: 'grow' });
+  const addT = async () => {
+    if (!tTitle.value.trim()) return;
+    await addTask({ title: tTitle.value.trim(), kind: fighter ? 'fix' : 'character', entity_type: 'fighter', entity_id: openSlug,
+      slot: null, owner: me, source: 'manual', priority_nathan: null, priority_cooper: null });
+    tTitle.value = '';
+  };
+  tTitle.addEventListener('keydown', e => e.key === 'Enter' && addT());
+  panel.append(h('div', { class: 'row' }, tTitle, h('button', { onclick: addT }, 'Add for me')));
+
+  // Move drafts: one box per slot of the Move List, saved when you leave the box.
+  const mine = Object.fromEntries(drafts.filter(d => d.fighter_id === openSlug).map(d => [d.slot, d]));
+  const slots = E.slots.slice(0, SLOT_SHORT.length);
+  panel.append(h('h3', {}, 'Move drafts (' + slots.filter(s => mine[s]?.body).length + ' of ' + slots.length + ' written)'));
+  for (const slot of slots) {
+    const d = mine[slot];
+    panel.append(h('div', { class: 'draft' + (d?.body ? ' filled' : '') },
+      h('label', { 'data-field': slot }, slot, h('span', { class: 'typing' })),
+      h('textarea', { rows: d?.body ? Math.min(6, Math.ceil(d.body.length / 70)) : 1, value: d?.body || '', placeholder: '-',
+        onchange: e => saveDraft(openSlug, slot, e.target.value), onfocus: () => typingAt(slot), onblur: () => typingAt(null) })));
+  }
+  document.body.append(h('div', { id: 'shade', class: 'shade', onclick: close }), panel);
+  showPresence();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openSlug && !/TEXTAREA|INPUT/.test(document.activeElement?.tagName)) { history.replaceState(null, '', location.pathname); openSlug = null; renderDrawer(); } });
+
+// ---------- status (from tools/status/build_status.py --push) ----------
+function statusIndex() {
+  const ix = {};
+  for (const r of status) ((ix[r.entity_type] ||= {})[r.entity_id] ||= {})[r.check_key] = r;
+  return ix;
+}
+const openTasksFor = (etype, id, slot) => tasks.filter(t => t.entity_type === etype && t.entity_id === id
+  && (!slot || t.slot === slot) && isOpen(t));
+const isOpen = (t) => t.status !== 'done' && t.status !== 'dropped';
+
+function statusView() {
+  const wrap = h('div');
+  if (!status.length) {
+    wrap.append(h('div', { class: 'card' }, h('p', {}, 'No scan yet. Run this on the machine with the game:'),
+      h('pre', {}, 'python3 tools/status/build_status.py --push')));
+    return wrap;
+  }
+  const ix = statusIndex();
+  const scanned = status.reduce((a, r) => r.scanned_at > a ? r.scanned_at : a, '');
+  const count = (rows, s) => Object.values(rows || {}).filter(r => r.state === s).length;
+  const fighters = E.fighter.filter(f => ix.fighter?.[f.id])
+    .map(f => ({ ...f, fail: count(ix.fighter[f.id], 'fail'), warn: count(ix.fighter[f.id], 'warn') }))
+    .sort((a, b) => onlyProblems ? (b.fail * 3 + b.warn) - (a.fail * 3 + a.warn) : a.name.localeCompare(b.name));
+  const totals = ['ok', 'warn', 'fail'].map(s => status.filter(r => r.entity_type === 'fighter' && r.state === s).length);
+
+  wrap.append(h('div', { class: 'row', style: 'margin-bottom:10px; justify-content:space-between' },
+    h('div', { class: 'legend' },
+      h('span', {}, h('span', { class: 'sw', style: 'background:var(--ok)' }), totals[0] + ' done'),
+      h('span', {}, h('span', { class: 'sw', style: 'background:var(--warn)' }), totals[1] + ' shared / stand-in'),
+      h('span', {}, h('span', { class: 'sw', style: 'background:var(--bad)' }), totals[2] + ' missing'),
+      h('span', {}, 'scanned ' + new Date(scanned).toLocaleString())),
+    h('label', { class: 'meta' }, h('input', { type: 'checkbox', checked: onlyProblems, onchange: e => { onlyProblems = e.target.checked; render(); } }),
+      ' most work first')));
+
+  // Fighter matrix
+  const head = h('tr', {}, h('th', { class: 'name' }, 'Fighter'),
+    FIGHTER_COLS.map(([k, label, grp]) => h('th', { class: grp ? 'grp' : '', title: CHECK_LABEL[k] }, label)));
+  const body = fighters.map(f => h('tr', {},
+    h('th', { class: 'name', title: f.fail + ' missing, ' + f.warn + ' shared', onclick: () => { location.hash = '#c/' + f.id; } },
+      f.name, f.fail ? h('span', { style: 'color:var(--bad); margin-left:6px; font-size:12px' }, f.fail + ' missing') : null),
+    FIGHTER_COLS.map(([k, , grp]) => {
+      const r = ix.fighter[f.id][k];
+      const sel = picked && picked.id === f.id && picked.key === k;
+      return h('td', { class: (r ? r.state : 'na') + (grp ? ' grp' : '') + (sel ? ' sel' : ''),
+        title: f.name + ' · ' + CHECK_LABEL[k] + (r?.detail ? ': ' + r.detail : ''), onclick: () => pick('fighter', f.id, k) });
+    })));
+  wrap.append(h('div', { class: 'card' }, h('h2', { style: 'margin-top:0;font-size:16px' }, 'Fighters'),
+    h('div', { class: 'scroll' }, h('table', { class: 'mx' }, h('thead', {}, head), h('tbody', {}, body)))));
+
+  if (picked) wrap.append(detailCard(ix));
+
+  // Stage table
+  const stages = E.stage.filter(s => ix.stage?.[s.id]);
+  wrap.append(h('div', { class: 'card' }, h('h2', { style: 'margin-top:0;font-size:16px' }, 'Stages'),
+    h('div', { class: 'scroll' }, h('table', { class: 'st' },
+      h('tr', {}, h('th', {}, 'Stage'), STAGE_COLS.map(([, l]) => h('th', {}, l)), h('th', {}, 'Open tasks')),
+      stages.map(s => h('tr', { style: 'cursor:pointer', onclick: () => pick('stage', s.id, null) },
+        h('td', {}, s.name),
+        STAGE_COLS.map(([k]) => { const r = ix.stage[s.id][k]; return h('td', {}, h('span', { class: 'dot ' + (r?.state || '') }), r?.detail || ''); }),
+        h('td', {}, '' + openTasksFor('stage', s.id).length)))))));
+  return wrap;
+}
+
+function pick(etype, id, key) { picked = { etype, id, key }; render(); }
+
+// What a clicked cell says, the open tasks on it, and a one-click task for it.
+function detailCard(ix) {
+  const { etype, id, key } = picked;
+  const rows = ix[etype]?.[id] || {};
+  const name = entityName(etype, id);
+  const slot = key?.startsWith('slot:') ? key.slice(5) : null;
+  const card = h('div', { class: 'card' },
+    h('div', { class: 'row', style: 'justify-content:space-between' },
+      h('strong', {}, name + (key ? ' · ' + CHECK_LABEL[key] : '')),
+      h('button', { onclick: () => { picked = null; render(); } }, 'Close')));
+  const show = key ? [rows[key]].filter(Boolean)
+    : Object.values(rows).filter(r => r.state === 'fail' || r.state === 'warn');
+  for (const r of show) card.append(h('div', { class: 'meta', style: 'margin:4px 0' },
+    h('span', { class: 'dot ' + r.state }), CHECK_LABEL[r.check_key] || r.check_key, r.detail ? ': ' + r.detail : ''));
+  if (!key && !show.length) card.append(h('p', { class: 'meta' }, 'Nothing missing.'));
+  const open = openTasksFor(etype, id, slot);
+  card.append(h('div', { style: 'margin-top:8px' }, h('strong', { style: 'font-size:13px' }, 'Open tasks (' + open.length + ')')));
+  for (const t of open) card.append(h('div', { class: 'meta' }, h('span', { class: 'chip ' + t.owner }, t.owner), t.title));
+  const r = key && rows[key];
+  if (r && (r.state === 'fail' || r.state === 'warn')) {
+    const kind = slot === 'Final Smash' ? 'finalSmash' : key === 'entrance' ? 'entrance' : slot ? 'anim' : 'fix';
+    const title = slot ? (r.detail.startsWith('shared') ? 'Own animation: ' + slot : 'Make ' + slot) : CHECK_LABEL[key] + ': ' + (r.detail || 'fix');
+    // Non-move checks keep their name in `slot`, so clicking Add twice merges instead of making a copy.
+    const add = (owner) => addTask({ title, kind, entity_type: etype, entity_id: id, slot: slot || CHECK_LABEL[key], owner, check_key: key, note: 'From the status board: ' + (r.detail || r.state), source: 'scanner' });
+    card.append(h('div', { class: 'row', style: 'margin-top:8px' }, 'Add "' + title + '" for',
+      h('button', { onclick: () => add(me) }, 'me'),
+      h('button', { onclick: () => add(me === 'nathan' ? 'cooper' : 'nathan') }, me === 'nathan' ? 'Cooper' : 'Nathan'),
+      h('button', { onclick: () => add('team') }, 'team')));
+  }
+  return card;
+}
+
+function visible() {
+  return tasks.filter(t => {
+    if (!showDone && (t.status === 'done' || t.status === 'dropped')) return false;
+    if (view === 'all') return true;
+    if (view === 'team') return t.owner === 'team';
+    const who = view === 'mine' ? me : view;
+    return t.owner === who || t.owner === 'both';
+  });
+}
+function rank(t) {
+  const p = view === 'cooper' ? t.priority_cooper : view === 'nathan' ? t.priority_nathan
+    : view === 'mine' ? t['priority_' + me] : Math.min(t.priority_nathan || 9, t.priority_cooper || 9);
+  return p || 9;
+}
+
+function tasksView() {
+  const wrap = h('div');
+  // Add form
+  const title = h('input', { type: 'text', placeholder: 'What needs doing?', class: 'grow' });
+  const kind = select(KINDS.map(k => [k, KIND_LABEL[k]]), 'fix', () => {});
+  const etype = select([['', 'No fighter/stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], '', () => fillEntities());
+  const entity = h('select', { class: 'grow' });
+  const slot = select([['', 'Any move'], ...E.slots], '', () => {});
+  const owner = select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team (nobody yet)']], me, () => {});
+  const prio = select([['', 'Priority'], ...[1, 2, 3, 4, 5].map(n => [n, n + (n === 1 ? ' (top)' : '')])], '', () => {});
+  const note = h('input', { type: 'text', placeholder: 'Note (optional)', class: 'grow' });
+  function fillEntities() {
+    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '-'),
+      ...(E[etype.value] || []).map(x => h('option', { value: x.id }, x.name)));
+    entity.disabled = !etype.value; slot.disabled = etype.value !== 'fighter';
+  }
+  fillEntities();
+  const add = async () => {
+    if (!title.value.trim()) return toast('Add a title', true);
+    const p = prio.value ? +prio.value : null;
+    const t = {
+      title: title.value.trim(), kind: kind.value, entity_type: etype.value || null, entity_id: entity.value || null,
+      slot: slot.value || null, owner: owner.value, note: note.value.trim(), source: 'manual',
+      priority_nathan: owner.value === 'nathan' || owner.value === 'both' ? p : null,
+      priority_cooper: owner.value === 'cooper' || owner.value === 'both' ? p : null,
+    };
+    await addTask(t);
+    title.value = ''; note.value = '';
+  };
+  title.addEventListener('keydown', e => e.key === 'Enter' && add());
+  wrap.append(h('div', { class: 'card' },
+    h('div', { class: 'row' }, title, kind, etype, entity, slot),
+    h('div', { class: 'row', style: 'margin-top:8px' }, 'Goes on', owner, prio, note, h('button', { class: 'on', onclick: add }, 'Add'))));
+
+  // Filters
+  const views = [['mine', 'Mine'], ['nathan', 'Nathan'], ['cooper', 'Cooper'], ['team', 'Team backlog'], ['all', 'Everything']];
+  wrap.append(h('div', { class: 'row', style: 'margin-bottom:10px' },
+    views.map(([id, label]) => h('button', { class: view === id ? 'on' : '', onclick: () => { view = id; render(); } }, label)),
+    h('label', { class: 'meta' }, h('input', { type: 'checkbox', checked: showDone, onchange: (e) => { showDone = e.target.checked; render(); } }), ' show done'),
+    h('label', { class: 'fld', style: 'margin-left:auto' }, 'Sort by',
+      select([['priority', 'Priority'], ['character', 'Character / stage'], ['type', 'Task type']], sortBy, v => {
+        sortBy = v; try { localStorage.setItem('board.sortBy', v); } catch (e) {} render();
+      }))));
+
+  const byRank = (a, b) => rank(a) - rank(b) || a.created_at.localeCompare(b.created_at);
+  const list = visible().sort(byRank);
+  const card = h('div', { class: 'card', style: 'padding:0' });
+  if (!list.length) card.append(h('p', { class: 'meta', style: 'padding:12px' }, 'Nothing here.'));
+  if (sortBy === 'priority') for (const t of list) card.append(taskRow(t));
+  else {
+    // Groups in name order (fighters, then stages, then everything else) or in the kinds' order; priority within each.
+    const groupOf = sortBy === 'type'
+      ? (t) => [String(KINDS.indexOf(t.kind)).padStart(2, '0'), KIND_LABEL[t.kind] || t.kind]
+      : (t) => !t.entity_id ? ['3', 'Not about one character or stage']
+        : [(t.entity_type === 'fighter' ? '1' : '2') + entityName(t.entity_type, t.entity_id).toLowerCase(),
+           entityName(t.entity_type, t.entity_id) + (t.entity_type === 'stage' ? ' (stage)' : '')];
+    const groups = new Map();
+    for (const t of list) { const [k, label] = groupOf(t); if (!groups.has(k)) groups.set(k, { label, items: [] }); groups.get(k).items.push(t); }
+    for (const k of [...groups.keys()].sort()) {
+      const g = groups.get(k);
+      const first = g.items[0];
+      const head = sortBy === 'character' && first.entity_type === 'fighter'
+        ? h('a', { href: '#c/' + first.entity_id, class: 'clink', title: 'Open the character page' }, g.label) : g.label;
+      card.append(h('div', { class: 'group' }, head, h('span', { class: 'meta' }, ' ' + g.items.length)));
+      for (const t of g.items) card.append(taskRow(t));
+    }
+  }
+  wrap.append(card, h('p', { class: 'meta' }, list.length + ' shown, ' + tasks.length + ' total'));
+  return wrap;
+}
+
+function taskRow(t) {
+  const where = !t.entity_id ? null
+    : t.entity_type === 'fighter'
+      ? h('span', {}, h('a', { href: '#c/' + t.entity_id, class: 'clink', title: 'Open the character page' }, entityName('fighter', t.entity_id)), t.slot ? ' · ' + t.slot : '')
+      : h('span', {}, entityName(t.entity_type, t.entity_id) + (t.slot ? ' · ' + t.slot : ''));
+  const pri = (who) => select([['', 'none'], ...[1, 2, 3, 4, 5].map(n => [n, n === 1 ? '1 (top)' : '' + n])], t['priority_' + who] || '',
+    v => patchTask(t.id, { ['priority_' + who]: v ? +v : null }));
+  const fld = (label, tip, control) => h('label', { class: 'fld', title: tip }, label, control);
+  const lastNote = (t.notes || []).filter(n => n.text).slice(-1)[0];
+  if (editing === t.id) return taskEditor(t, fld, pri);
+  return h('div', { id: 'task-' + t.id, class: 'task' + (t.status === 'done' ? ' done' : '') },
+    h('div', {},
+      h('button', { class: 'title linkish', title: 'Edit this task', onclick: () => { editing = t.id; render(); } }, t.title),
+      h('div', { class: 'meta' },
+        h('span', { class: 'chip ' + t.owner }, t.owner),
+        h('span', { class: 'chip' }, KIND_LABEL[t.kind] || t.kind),
+        where,
+        t.effort && h('span', {}, 'effort ' + t.effort))),
+    h('div', { class: 'ctl' },
+      fld('On the list of', 'Whose list this task is on', select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team']], t.owner, v => patchTask(t.id, { owner: v }))),
+      fld("Nathan's priority", "How urgent this is for Nathan (1 = most urgent)", pri('nathan')),
+      fld("Cooper's priority", "How urgent this is for Cooper (1 = most urgent)", pri('cooper')),
+      fld('Status', 'Where the work stands', select(STATUSES, t.status, v => patchTask(t.id, { status: v })))),
+    lastNote && h('div', { class: 'note' }, lastNote.by + ': ' + lastNote.text));
+}
+
+// A task opened for editing: everything about it, all its notes, a box for a new note.
+// Owner, priorities and status save as soon as they change; the rest saves with Save.
+function taskEditor(t, fld, pri) {
+  const title = h('input', { type: 'text', value: t.title, class: 'grow' });
+  const kind = select(KINDS.map(k => [k, KIND_LABEL[k]]), t.kind, () => {});
+  const etype = select([['', 'No fighter/stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], t.entity_type || '', () => fillEntities());
+  const entity = h('select', { class: 'grow' });
+  const slot = select([['', 'Any move'], ...E.slots], t.slot || '', () => {});
+  const effort = select([['', 'not set'], ...[1, 2, 3, 4, 5].map(n => [n, n + (n === 1 ? ' (quick)' : n === 5 ? ' (big)' : '')])], t.effort || '', () => {});
+  function fillEntities() {
+    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '-'),
+      ...(E[etype.value] || []).map(x => h('option', { value: x.id, selected: x.id === t.entity_id }, x.name)));
+    entity.disabled = !etype.value; slot.disabled = etype.value !== 'fighter';
+  }
+  fillEntities();
+  const close = () => { editing = null; render(); };
+  const save = async () => {
+    if (!title.value.trim()) return toast('Add a title', true);
+    const next = { ...t, title: title.value.trim(), kind: kind.value, entity_type: etype.value || null,
+      entity_id: etype.value ? entity.value || null : null, slot: etype.value === 'fighter' ? slot.value || null : null };
+    const patch = { title: next.title, kind: next.kind, entity_type: next.entity_type, entity_id: next.entity_id, slot: next.slot,
+      effort: effort.value ? +effort.value : null, dedupe_key: mergeable(next) ? keyOf(next) : null };
+    // Keep an auto-close set from a status cell; otherwise follow what the task is now.
+    patch.check_key = t.source === 'scanner' && t.check_key && next.entity_id === t.entity_id ? t.check_key : checkKeyFor(next);
+    const { error } = await sb.from('tasks').update(patch).eq('id', t.id);
+    if (error?.code === '23505') {
+      const same = tasks.find(x => x.dedupe_key === patch.dedupe_key && x.id !== t.id);
+      return toast('That job is already on the board' + (same ? ': "' + same.title + '"' : ''), true);
+    }
+    if (error) return toast(error.message, true);
+    toast('Saved'); close();
+  };
+  const noteBox = h('input', { type: 'text', placeholder: 'Add a note and press Enter', class: 'grow' });
+  const addNote = async () => {
+    if (!noteBox.value.trim()) return;
+    await patchTask(t.id, { notes: [...(t.notes || []), { by: me, at: new Date().toISOString(), text: noteBox.value.trim() }] });
+    noteBox.value = '';
+  };
+  noteBox.addEventListener('keydown', e => e.key === 'Enter' && addNote());
+  title.addEventListener('keydown', e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); });
+  const del = async () => {
+    if (!confirm('Delete "' + t.title + '" for both of you? Setting its status to "dropped" keeps it in the history instead.')) return;
+    const { error } = await sb.from('tasks').delete().eq('id', t.id);
+    if (error) return toast(error.message, true);
+    close();
+  };
+  const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); };
+  return h('div', { class: 'task editing keep' },
+    h('div', { style: 'grid-column:1/-1; display:flex; flex-direction:column; gap:8px' },
+      h('div', { class: 'row' }, title),
+      h('div', { class: 'row' }, fld('Kind', '', kind), fld('About', '', etype), fld('Which', '', entity), fld('Move', '', slot), fld('Effort', '1 = quick, 5 = big', effort)),
+      h('div', { class: 'row' },
+        fld('On the list of', 'Whose list this task is on', select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team']], t.owner, v => patchTask(t.id, { owner: v }))),
+        fld("Nathan's priority", "1 = most urgent", pri('nathan')),
+        fld("Cooper's priority", "1 = most urgent", pri('cooper')),
+        fld('Status', '', select(STATUSES, t.status, v => patchTask(t.id, { status: v })))),
+      t.check_key ? h('div', { class: 'meta' }, 'Closes itself when the scan shows ' + (CHECK_LABEL[t.check_key] || t.check_key) + ' done.') : null,
+      h('div', {},
+        h('strong', { style: 'font-size:13px' }, 'Notes'),
+        ...(t.notes || []).filter(n => n.text).map(n => h('div', { class: 'meta', style: 'margin:3px 0' },
+          h('strong', {}, n.by), when(n.at) && h('span', {}, when(n.at)), h('span', {}, n.text))),
+        h('div', { class: 'row', style: 'margin-top:4px' }, noteBox)),
+      h('div', { class: 'row', style: 'justify-content:space-between' },
+        h('div', { class: 'row' }, h('button', { class: 'on', onclick: save }, 'Save'), h('button', { onclick: close }, 'Cancel')),
+        h('button', { onclick: del, style: 'color:var(--bad)' }, 'Delete'))));
+}
+
+function pipelineView() {
+  const name = h('input', { type: 'text', placeholder: 'New character idea', class: 'grow' });
+  const url = h('input', { type: 'text', placeholder: 'Model link (optional)', class: 'grow' });
+  const add = async () => {
+    if (!name.value.trim()) return;
+    const { error } = await sb.from('pipeline').insert({ name: name.value.trim(), slug: slugify(name.value), model_url: url.value.trim() || null });
+    if (error) toast(error.code === '23505' ? 'Already on the list' : error.message, true);
+    else { name.value = ''; url.value = ''; }
+  };
+  name.addEventListener('keydown', e => e.key === 'Enter' && add());
+  const cols = PIPE.map(stage => h('div', { class: 'col' },
+    h('h3', {}, PIPE_LABEL[stage] + ' (' + pipe.filter(p => p.stage === stage).length + ')'),
+    pipe.filter(p => p.stage === stage).map(p => {
+      const nDrafts = drafts.filter(d => d.fighter_id === p.slug && d.body).length;
+      const nTasks = openTasksFor('fighter', p.slug).length;
+      return h('div', { class: 'pcard' },
+        // A link, so cmd / ctrl-click opens the character in a new tab.
+        h('a', { class: 'pname', href: '#c/' + p.slug, title: 'Open design info' }, p.name),
+        h('div', { class: 'meta' },
+          nDrafts ? h('span', {}, nDrafts + ' move' + (nDrafts > 1 ? 's' : '') + ' drafted') : null,
+          nTasks ? h('span', {}, nTasks + ' open task' + (nTasks > 1 ? 's' : '')) : null,
+          p.model_url && h('a', { href: p.model_url, target: '_blank', rel: 'noopener noreferrer' }, 'model')),
+        select(PIPE.map(s => [s, PIPE_LABEL[s]]), p.stage, v => patchPipe(p.id, { stage: v })));
+    })));
+  return h('div', {},
+    h('div', { class: 'card' }, h('div', { class: 'row' }, name, url, h('button', { class: 'on', onclick: add }, 'Add'))),
+    h('div', { class: 'cols' }, cols));
+}
+
+boot();
+</script>
+</body>
+</html>

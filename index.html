@@ -5,112 +5,230 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brawl Circuit Board</title>
 <style>
+  /* ---------- tokens ---------- */
   :root {
-    --bg:#f6f6f4; --panel:#fff; --ink:#1d1d1f; --mute:#6b6b70; --line:#dcdcd6;
-    --accent:#2f5bea; --ok:#1f8a4c; --warn:#b7791f; --bad:#c0392b;
-    --chip-n:#dbe6ff; --chip-c:#ffe3c9; --chip-b:#e5d9ff; --chip-t:#e8e8e3;
+    --bg:#f3f4f8; --panel:#ffffff; --panel2:#f8f9fc; --ink:#171923; --mute:#667085; --line:#e3e6ee; --line2:#d3d8e3;
+    --accent:#5b5bf0; --accent2:#00b3d6; --ok:#16a36a; --warn:#d99a1e; --bad:#e0483e; --na:#b7bdc9;
+    --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+    --shadow2:0 8px 24px rgba(16,24,40,.12);
+    --head1:#14162b; --head2:#272a54;
+    --nathan:#3b82f6; --cooper:#f97316; --both:#8b5cf6; --team:#64748b;
+    --chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l3 3 3-3' fill='none' stroke='%238a93a6' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#16171a; --panel:#1f2125; --ink:#ececec; --mute:#9a9aa2; --line:#33353b;
-      --accent:#7b9bff; --ok:#4cc17f; --warn:#e0a548; --bad:#ee7b6e;
-      --chip-n:#26365e; --chip-c:#5a3b22; --chip-b:#3d2f63; --chip-t:#34363b; }
+    :root { --bg:#0f1117; --panel:#171a23; --panel2:#1d2130; --ink:#e9ebf2; --mute:#98a0b3; --line:#272b38; --line2:#343a4b;
+      --accent:#8b8bff; --accent2:#3fd3f0; --ok:#34c47f; --warn:#e8b04a; --bad:#f06a60; --na:#4a5063;
+      --shadow:0 1px 2px rgba(0,0,0,.4); --shadow2:0 10px 30px rgba(0,0,0,.5); --head1:#0b0c18; --head2:#1c1f45; }
   }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,sans-serif; }
-  header { display:flex; align-items:center; gap:16px; padding:12px 16px; background:var(--panel); border-bottom:1px solid var(--line); flex-wrap:wrap; }
-  header h1 { font-size:17px; margin:0; }
-  nav { display:flex; gap:4px; flex:1; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased; }
+  main { max-width:1080px; margin:0 auto; padding:18px 16px 40px; }
+
+  /* ---------- header ---------- */
+  header { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px; padding:10px 18px; flex-wrap:wrap;
+    background:linear-gradient(100deg, var(--head1), var(--head2)); color:#fff; box-shadow:0 2px 12px rgba(10,12,40,.25); }
+  .brand { display:flex; align-items:center; gap:10px; margin-right:6px; }
+  .brand svg { width:30px; height:30px; flex:none; }
+  .brand h1 { font-size:16px; margin:0; letter-spacing:.01em; line-height:1.1; }
+  .brand h1 small { display:block; font-size:11px; font-weight:500; color:#aab0d6; letter-spacing:.08em; text-transform:uppercase; }
+  nav { display:flex; gap:2px; padding:3px; border-radius:10px; background:rgba(255,255,255,.08); }
+  nav button { background:transparent; border:0; color:#cdd1ee; padding:6px 12px; border-radius:8px; font-weight:600; font-size:14px; }
+  nav button:hover { background:rgba(255,255,255,.08); color:#fff; border:0; }
+  nav button.on { background:#fff; color:var(--head1); box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .spacer { flex:1; }
+  header #who { color:#aab0d6; font-size:13px; }
+  header > button { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); color:#e4e6f7; font-size:13px; }
+  header > button:hover { background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.3); }
+
+  /* ---------- controls ---------- */
   button, select, input, textarea { font:inherit; color:inherit; }
-  button { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:5px 10px; cursor:pointer; }
+  button { background:var(--panel); border:1px solid var(--line2); border-radius:8px; padding:6px 12px; cursor:pointer;
+    font-size:14px; font-weight:500; transition:background .12s, border-color .12s, box-shadow .12s; }
   button:hover { border-color:var(--accent); }
-  button.on { background:var(--accent); border-color:var(--accent); color:#fff; }
-  main { max-width:1000px; margin:0 auto; padding:16px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:12px; }
-  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  input, select, textarea { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+  button:disabled { opacity:.55; cursor:default; }
+  button.on, button.primary { background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(60,60,200,.25); }
+  button.on:hover, button.primary:hover { filter:brightness(1.07); }
+  button.ghost { background:transparent; border-color:transparent; color:var(--mute); }
+  button.ghost:hover { background:var(--panel2); color:var(--ink); border-color:transparent; }
+  button.danger { color:var(--bad); }
+  input, select, textarea { background:var(--panel); border:1px solid var(--line2); border-radius:8px; padding:6px 10px; min-height:34px;
+    transition:border-color .12s, box-shadow .12s; }
+  input:focus, select:focus, textarea:focus, button:focus-visible { outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  /* Same dropdown on every browser (Safari draws its own bare one otherwise). */
+  select { -webkit-appearance:none; appearance:none; background-image:var(--chev); background-repeat:no-repeat;
+    background-position:right 9px center; padding-right:28px; cursor:pointer; }
+  select:disabled { opacity:.5; cursor:default; }
+  textarea { line-height:1.4; resize:vertical; }
+  textarea.grow-box { resize:none; overflow:hidden; min-height:34px; }
+  input[type=checkbox] { min-height:0; accent-color:var(--accent); width:15px; height:15px; vertical-align:-2px; }
   input[type=text], input[type=email], input[type=password] { min-width:0; }
   .grow { flex:1; min-width:180px; }
-  .task { display:grid; grid-template-columns:1fr auto; gap:6px 12px; padding:10px 12px; border-bottom:1px solid var(--line); }
-  .task:last-child { border-bottom:0; }
-  .task.done { opacity:.55; }
-  .title { font-weight:600; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h2 { font-size:16px; margin:0 0 10px; }
   .meta { color:var(--mute); font-size:13px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-  .chip { border-radius:10px; padding:0 8px; font-size:12px; background:var(--chip-t); }
-  .chip.nathan { background:var(--chip-n); } .chip.cooper { background:var(--chip-c); } .chip.both { background:var(--chip-b); }
-  .ctl { display:flex; gap:6px; flex-wrap:wrap; align-items:flex-start; justify-content:flex-end; }
-  .ctl select { padding:2px 4px; font-size:13px; }
-  .note { font-size:13px; color:var(--mute); grid-column:1/-1; }
-  .toast { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:8px 14px; border-radius:8px; max-width:90vw; }
+  .fld { display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:600; color:var(--mute); letter-spacing:.02em; }
+  .fld select { font-size:13px; font-weight:500; color:var(--ink); min-height:30px; padding-top:4px; padding-bottom:4px; }
+  .seg { display:inline-flex; gap:2px; padding:3px; border-radius:10px; background:var(--panel2); border:1px solid var(--line); flex-wrap:wrap; }
+  .seg button { border:0; background:transparent; padding:5px 11px; border-radius:7px; font-size:13px; color:var(--mute); font-weight:600; }
+  .seg button:hover { color:var(--ink); background:var(--panel); }
+  .seg button.on { background:var(--panel); color:var(--ink); box-shadow:var(--shadow); }
+  .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:9px 16px;
+    border-radius:10px; max-width:90vw; box-shadow:var(--shadow2); z-index:30; font-size:14px; }
   .err { color:var(--bad); }
-  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
-  .col h3 { font-size:13px; margin:0 0 6px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; }
-  .pcard { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px; margin-bottom:8px; font-size:14px; min-width:0; }
+  pre { background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; overflow-x:auto; }
+
+  /* ---------- chips, badges ---------- */
+  .chip { display:inline-flex; align-items:center; gap:4px; border-radius:999px; padding:1px 9px; font-size:12px; font-weight:600;
+    background:var(--panel2); border:1px solid var(--line); color:var(--mute); white-space:nowrap; }
+  .chip.owner { color:#fff; border:0; }
+  .chip.owner.nathan { background:var(--nathan); } .chip.owner.cooper { background:var(--cooper); }
+  .chip.owner.both { background:var(--both); } .chip.owner.team { background:var(--team); }
+  .kind { --k:var(--team); background:color-mix(in srgb, var(--k) 14%, transparent); color:var(--k); border-color:color-mix(in srgb, var(--k) 30%, transparent); }
+  .kind .ico { font-size:12px; }
+  /* A fighter / stage's own colour badge (initials): fighters round, stages square. */
+  .av { --h:220; display:inline-grid; place-items:center; flex:none; width:22px; height:22px; border-radius:50%; font-size:10px; font-weight:800;
+    color:#fff; background:linear-gradient(135deg, hsl(var(--h) 70% 55%), hsl(calc(var(--h) + 35) 70% 45%)); letter-spacing:-.02em; }
+  .av.stage { border-radius:6px; }
+  .av.big { width:34px; height:34px; font-size:13px; }
+  .ent { display:inline-flex; align-items:center; gap:6px; color:var(--ink); font-weight:500; }
+  a.clink { color:inherit; text-decoration:none; }
+  a.clink:hover { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+  .stp { --s:var(--team); font-weight:600; color:var(--s); background-color:color-mix(in srgb, var(--s) 12%, var(--panel));
+    border-color:color-mix(in srgb, var(--s) 35%, transparent); }
+  .stp.todo { --s:#7a8399; } .stp.doing { --s:#3b82f6; } .stp.done { --s:var(--ok); } .stp.dropped { --s:#9aa1b2; }
+
+  /* ---------- tasks ---------- */
+  .addform { display:flex; flex-direction:column; gap:8px; }
+  .tasks { padding:0; overflow:hidden; }
+  .task { --k:var(--team); display:grid; grid-template-columns:1fr auto; gap:6px 14px; padding:12px 14px 12px 16px;
+    border-bottom:1px solid var(--line); position:relative; }
+  .task::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--k); opacity:.85; }
+  .task:last-child { border-bottom:0; }
+  .task:hover { background:var(--panel2); }
+  .task.done, .task.dropped { opacity:.6; }
+  .task.done .title { text-decoration:line-through; text-decoration-color:var(--mute); }
+  .title { font-weight:650; font-size:15px; }
+  button.linkish { background:none; border:0; padding:0; text-align:left; cursor:pointer; font:inherit; font-weight:650; color:var(--ink); box-shadow:none; }
+  button.linkish:hover { color:var(--accent); }
+  .ctl { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; justify-content:flex-end; }
+  .note { font-size:13px; color:var(--mute); grid-column:1/-1; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .note b { color:var(--ink); font-weight:600; }
+  .group { padding:9px 14px; font-weight:700; font-size:14px; background:var(--panel2); border-bottom:1px solid var(--line);
+    display:flex; gap:8px; align-items:center; position:sticky; top:52px; z-index:1; }
+  .group .count { margin-left:auto; color:var(--mute); font-weight:600; font-size:12px; background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; padding:0 8px; }
+  .task.editing { background:var(--panel2); box-shadow:inset 0 0 0 2px var(--accent); }
+  .notes { display:flex; flex-direction:column; gap:6px; }
+  .nt { display:block; width:100%; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:7px 10px;
+    font-size:13px; cursor:text; white-space:pre-wrap; overflow-wrap:anywhere; font-weight:400; }
+  .nt:hover { border-color:var(--accent); }
+  .nt .by { font-weight:700; margin-right:6px; } .nt .when { color:var(--mute); font-size:12px; margin-right:6px; }
+  .nt .edited { color:var(--mute); font-size:11px; font-style:italic; }
+  .ntedit { display:flex; flex-direction:column; gap:6px; padding:8px; border:1px solid var(--accent); border-radius:8px; background:var(--panel); }
+  .hint { font-size:12px; color:var(--mute); }
+
+  /* ---------- new characters ---------- */
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(185px,1fr)); gap:12px; align-items:start; }
+  .col { --c:var(--team); background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px; border-top:3px solid var(--c); }
+  .col.idea { --c:#94a3b8; } .col.model_found { --c:#0ea5e9; } .col.in_works { --c:#f59e0b; } .col.finished { --c:#8b5cf6; } .col.implemented { --c:var(--ok); }
+  .col h3 { font-size:12px; margin:2px 2px 10px; color:var(--mute); text-transform:uppercase; letter-spacing:.06em; display:flex; justify-content:space-between; }
+  .col h3 .count { color:var(--c); }
+  .pcard { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:9px; margin-bottom:8px; font-size:14px; min-width:0;
+    box-shadow:var(--shadow); transition:transform .12s, box-shadow .12s; }
+  .pcard:hover { transform:translateY(-1px); box-shadow:var(--shadow2); }
+  .pcard .top { display:flex; gap:8px; align-items:center; }
   .pcard a { color:var(--accent); }
-  .pcard a.pname { color:var(--ink); font-weight:600; text-decoration:none; display:block; }
+  .pcard a.pname { color:var(--ink); font-weight:650; text-decoration:none; line-height:1.25; }
   .pcard a.pname:hover { color:var(--accent); }
-  .pcard select { width:100%; max-width:100%; font-size:12px; padding:2px 4px; margin-top:6px; }
-  .fld { display:flex; flex-direction:column; gap:1px; font-size:11px; color:var(--mute); }
-  .fld select { font-size:13px; }
-  /* character panel */
-  .shade { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:10; }
-  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(620px, 100vw); background:var(--bg); border-left:1px solid var(--line);
-    z-index:11; overflow-y:auto; padding:16px; box-shadow:-8px 0 24px rgba(0,0,0,.25); }
-  .drawer h2 { margin:0; font-size:20px; }
-  .drawer h3 { font-size:14px; margin:18px 0 6px; }
-  .drawer textarea { width:100%; resize:vertical; font-size:14px; }
-  .draft { display:grid; grid-template-columns:150px 1fr; gap:8px; align-items:start; margin-bottom:6px; }
-  .draft label { font-size:13px; padding-top:6px; color:var(--mute); }
-  .draft.filled label { color:var(--ink); font-weight:600; }
-  @media (max-width:560px) { .draft { grid-template-columns:1fr; } .draft label { padding-top:0; } }
-  @media (max-width:560px) { .task { grid-template-columns:1fr; } .ctl { justify-content:flex-start; } }
+  .pcard .meta { margin-top:5px; font-size:12px; }
+  .pcard select { width:100%; max-width:100%; font-size:12px; min-height:28px; padding-top:3px; padding-bottom:3px; margin-top:8px; }
+
+  /* ---------- status ---------- */
   .scroll { overflow-x:auto; }
-  table.mx { border-collapse:collapse; font-size:12px; }
-  table.mx th, table.mx td { padding:0; border:1px solid var(--line); text-align:center; }
+  table.mx { border-collapse:separate; border-spacing:2px; font-size:12px; }
   table.mx th { font-weight:500; color:var(--mute); background:var(--panel); }
-  table.mx thead th { writing-mode:vertical-rl; padding:4px 2px; height:92px; white-space:nowrap; vertical-align:bottom; text-align:left; }
-  table.mx th.name { writing-mode:horizontal-tb; transform:none; text-align:left; padding:2px 8px; position:sticky; left:0; z-index:1; white-space:nowrap; cursor:pointer; }
-  table.mx td { width:18px; height:18px; cursor:pointer; }
+  table.mx thead th { writing-mode:vertical-rl; padding:4px 2px; height:96px; white-space:nowrap; vertical-align:bottom; text-align:left; }
+  table.mx th.name { writing-mode:horizontal-tb; text-align:left; padding:2px 10px 2px 2px; position:sticky; left:0; z-index:1;
+    white-space:nowrap; cursor:pointer; color:var(--ink); }
+  table.mx th.name:hover { color:var(--accent); }
+  table.mx th.name .row { gap:6px; flex-wrap:nowrap; }
+  table.mx td { width:18px; height:18px; min-width:18px; cursor:pointer; border-radius:4px; padding:0; transition:transform .08s; }
+  table.mx td:hover { transform:scale(1.25); position:relative; z-index:1; }
   table.mx td.ok { background:var(--ok); } table.mx td.warn { background:var(--warn); }
-  table.mx td.fail { background:var(--bad); } table.mx td.na { background:transparent; }
-  table.mx td.sel { outline:2px solid var(--ink); outline-offset:-2px; }
-  table.mx th.grp { border-left:2px solid var(--mute); }
-  .legend { display:flex; gap:12px; font-size:13px; color:var(--mute); flex-wrap:wrap; }
-  .sw { display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:-1px; margin-right:4px; }
+  table.mx td.fail { background:var(--bad); } table.mx td.na { background:color-mix(in srgb, var(--na) 35%, transparent); }
+  table.mx td.sel { box-shadow:0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
+  /* A cell set by hand: a corner notch. */
+  table.mx td.manual { background-image:linear-gradient(135deg, rgba(255,255,255,.95) 0 28%, transparent 28%); }
+  table.mx th.grp, table.mx td.grp { box-shadow:-3px 0 0 -1px var(--panel), -4px 0 0 -1px var(--line2); }
+  table.mx td.grp.sel { box-shadow:0 0 0 2px var(--panel), 0 0 0 4px var(--ink); }
+  .legend { display:flex; gap:14px; font-size:13px; color:var(--mute); flex-wrap:wrap; align-items:center; }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin-right:5px; }
   table.st { border-collapse:collapse; width:100%; font-size:14px; }
-  table.st td, table.st th { border-bottom:1px solid var(--line); padding:5px 8px; text-align:left; }
-  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; }
-  .dot.ok { background:var(--ok); }
-  .login { max-width:460px; margin:40px auto; }
+  table.st td, table.st th { border-bottom:1px solid var(--line); padding:7px 8px; text-align:left; }
+  table.st th { font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:.04em; }
+  table.st tr.pick { cursor:pointer; } table.st tr.pick:hover td { background:var(--panel2); }
+  .dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; flex:none; }
+  .dot.ok { background:var(--ok); } .dot.warn { background:var(--warn); } .dot.fail { background:var(--bad); } .dot.na { background:var(--na); }
+  .detail { border-color:var(--accent); }
+  .setstate { margin-top:10px; }
+  .setstate .seg button.on.ok { color:var(--ok); } .setstate .seg button.on.warn { color:var(--warn); }
+  .setstate .seg button.on.fail { color:var(--bad); }
+
+  /* ---------- character panel ---------- */
+  .shade { position:fixed; inset:0; background:rgba(8,10,25,.45); z-index:10; backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); }
+  .drawer { position:fixed; top:0; right:0; bottom:0; width:min(640px, 100vw); background:var(--bg); border-left:1px solid var(--line);
+    z-index:11; overflow-y:auto; padding:18px; box-shadow:var(--shadow2); }
+  .drawer h2 { margin:0; font-size:21px; }
+  .drawer h3 { font-size:13px; margin:20px 0 8px; text-transform:uppercase; letter-spacing:.05em; color:var(--mute); }
+  .drawer textarea { width:100%; font-size:14px; }
+  .draft { display:grid; grid-template-columns:150px 1fr; gap:8px; align-items:start; margin-bottom:6px; }
+  .draft label { font-size:13px; padding-top:7px; color:var(--mute); }
+  .draft.filled label { color:var(--ink); font-weight:600; }
+  @media (max-width:560px) {
+    .draft { grid-template-columns:1fr; } .draft label { padding-top:0; }
+    .task { grid-template-columns:1fr; } .ctl { justify-content:flex-start; }
+  }
+
+  /* ---------- sign-in ---------- */
+  .login { max-width:460px; margin:48px auto; padding:22px; }
+  .login h2 { font-size:22px; }
   .people { display:flex; gap:12px; margin:8px 0 4px; }
-  .people button.person { flex:1; padding:18px 12px; font-size:18px; font-weight:700; border-radius:10px; }
-  .people button.person.on { background:var(--panel); color:var(--ink); border-color:var(--accent); }
-  .sent { margin-top:12px; padding:10px 12px; border:1px solid var(--ok); border-radius:8px; }
+  .people button.person { flex:1; padding:20px 12px; font-size:18px; font-weight:700; border-radius:12px; }
+  .people button.person.on { border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  .sent { margin-top:12px; padding:12px; border:1px solid var(--ok); border-radius:10px; }
   .sent p { margin:4px 0 8px; color:var(--mute); font-size:14px; }
   details.other { margin-top:18px; font-size:14px; color:var(--mute); }
   details.other summary { cursor:pointer; margin-bottom:8px; }
-  dialog::backdrop { background:rgba(0,0,0,.4); }
+  dialog::backdrop { background:rgba(8,10,25,.45); }
   dialog.card { border:1px solid var(--line); background:var(--panel); }
-  .typing { color:var(--ok); font-weight:400; font-size:12px; margin-left:6px; }
+
+  /* ---------- presence ---------- */
+  .typing { color:var(--ok); font-weight:400; font-size:12px; margin-left:6px; text-transform:none; letter-spacing:0; }
   #here { gap:6px; }
-  #here .chip { display:inline-flex; align-items:center; padding:2px 8px; }
-  button.linkish { background:none; border:0; padding:0; text-align:left; cursor:pointer; font:inherit; font-weight:600; color:var(--ink); }
-  button.linkish:hover { color:var(--accent); text-decoration:underline; }
-  .group { padding:8px 12px 4px; font-weight:700; font-size:14px; background:var(--bg); border-bottom:1px solid var(--line); display:flex; gap:6px; align-items:baseline; }
-  a.clink { color:inherit; text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:2px; }
-  a.clink:hover { color:var(--accent); text-decoration-color:var(--accent); }
-  button.chip.here { border:0; cursor:pointer; font:inherit; font-size:12px; color:var(--ink); }
-  button.chip.here:hover { outline:2px solid var(--accent); }
+  button.chip.here { border:0; cursor:pointer; font-size:12px; color:#fff; padding:3px 10px; }
+  button.chip.here.nathan { background:var(--nathan); } button.chip.here.cooper { background:var(--cooper); }
+  button.chip.here:hover { box-shadow:0 0 0 2px rgba(255,255,255,.6); }
   .flash { animation:flash 1.6s ease-out; }
   @keyframes flash { 0%, 40% { box-shadow:0 0 0 3px var(--accent); } 100% { box-shadow:0 0 0 0 transparent; } }
-  .task.editing { background:var(--bg); outline:2px solid var(--accent); outline-offset:-2px; } .dot.warn { background:var(--warn); } .dot.fail { background:var(--bad); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>Brawl Circuit Board</h1>
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c7cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+      <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#bg1)"/>
+      <path d="M18 5 9 18h6l-2 9 10-14h-6z" fill="#fff"/></svg>
+    <h1>Brawl Circuit<small>Status board</small></h1>
+  </div>
   <nav id="nav" hidden></nav>
+  <span class="spacer"></span>
   <span id="here" class="row"></span>
-  <span id="who" class="meta"></span>
+  <span id="who"></span>
   <button id="pw" hidden>Change password</button>
   <button id="out" hidden>Sign out</button>
 </header>
@@ -139,6 +257,9 @@ let showDone = false;
 let sortBy = 'priority';
 try { sortBy = localStorage.getItem('board.sortBy') || 'priority'; } catch (e) {}
 let tasks = [], pipe = [], status = [], drafts = [];
+// status = the scan's rows (scanRows) with any cell set by hand (overrides) shown over them.
+let scanRows = [], overrides = [];
+const STATE_LABEL = { ok: 'Done', warn: 'Shared / stand-in', fail: 'Missing', na: 'Not needed' };
 let openSlug = null;        // the character whose design panel is open (#c/<slug>)
 let drawerStale = false;    // data changed while someone was typing in the panel: redraw it when they leave the field
 // Same rule as the pipeline slug migration: letters and digits only, lower case.
@@ -184,6 +305,44 @@ function select(options, value, onchange) {
   return s;
 }
 const entityName = (type, id) => (E[type] || []).find(x => x.id === id)?.name || id;
+// Each task type's colour and symbol.
+const KIND_STYLE = { fix: ['#e5484d', '🔧'], feature: ['#8b5cf6', '✨'], anim: ['#0ea5e9', '🎞️'], stage: ['#10b981', '🏟️'],
+  skin: ['#ec4899', '🎨'], entrance: ['#f59e0b', '🚪'], finalSmash: ['#f97316', '💥'], character: ['#6366f1', '🧑'], other: ['#64748b', '📌'] };
+const kindColor = (k) => (KIND_STYLE[k] || KIND_STYLE.other)[0];
+function kindChip(k) {
+  const [c, ico] = KIND_STYLE[k] || KIND_STYLE.other;
+  return h('span', { class: 'chip kind', style: '--k:' + c }, h('span', { class: 'ico' }, ico), KIND_LABEL[k] || k);
+}
+const OWNER_LABEL = { nathan: 'Nathan', cooper: 'Cooper', both: 'Both', team: 'Team' };
+const ownerChip = (o) => h('span', { class: 'chip owner ' + o }, OWNER_LABEL[o] || o);
+const STATUS_LABEL = { todo: 'To do', doing: 'Doing', done: 'Done', dropped: 'Dropped' };
+const STATUS_ICON = { todo: '○', doing: '◐', done: '✓', dropped: '–' };
+function statusSelect(t) {
+  const s = select(STATUSES.map(x => [x, STATUS_ICON[x] + '  ' + STATUS_LABEL[x]]), t.status, v => patchTask(t.id, { status: v }));
+  s.classList.add('stp', t.status);
+  return s;
+}
+// A fighter or stage's own colour (from its id) and initials: round for fighters, square for stages.
+const hueOf = (s) => { let x = 7; for (const ch of String(s)) x = (x * 31 + ch.charCodeAt(0)) % 360; return x; };
+const initials = (name) => (String(name).match(/[A-Za-z0-9]+/g) || ['?']).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const avatar = (type, id, name, big) => h('span', { class: 'av' + (type === 'stage' ? ' stage' : '') + (big ? ' big' : ''),
+  style: '--h:' + hueOf(id || name), title: name }, initials(name));
+// "badge Name · move", the name opening the character page for a fighter.
+function entityTag(type, id, slot) {
+  const name = entityName(type, id);
+  const label = type === 'fighter' ? h('a', { href: '#c/' + id, class: 'clink', title: 'Open the character page' }, name) : h('span', {}, name);
+  return h('span', { class: 'ent' }, avatar(type, id, name), label, slot ? h('span', { class: 'meta' }, '· ' + slot) : null);
+}
+// A text box that wraps and grows with what's typed, so all of it shows.
+function autoGrow(el) {
+  el.classList.add('grow-box');
+  el.rows = 1;
+  const fit = () => { el.style.height = 'auto'; el.style.height = (el.scrollHeight + 2) + 'px'; };
+  el.addEventListener('input', fit);
+  requestAnimationFrame(fit);
+  return el;
+}
+const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); };
 const keyOf = (t) => [t.kind, t.entity_type, t.entity_id, t.slot || ''].join('/').toLowerCase();
 // Only jobs with one natural home are merged: a specific move slot, or the one entrance / Final Smash a fighter has.
 // Skins and free-form fixes with no move are never merged, since a fighter can have several.
@@ -343,7 +502,7 @@ async function start(session) {
   $('who').textContent = 'Signed in as ' + data.name;
   $('out').hidden = false; $('pw').hidden = false;
   buildNav();
-  await Promise.all([loadTasks(), loadPipe(), loadStatus(), loadDrafts(), loadEntities()]);
+  await Promise.all([loadTasks(), loadPipe(), loadStatus(), loadOverrides(), loadDrafts(), loadEntities()]);
   // A scan replaces hundreds of rows at once: wait for it to settle before reloading.
   let statusTimer = null;
   if (channel) await sb.removeChannel(channel);
@@ -355,6 +514,7 @@ async function start(session) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'feature_status' }, () => {
       clearTimeout(statusTimer); statusTimer = setTimeout(async () => { await loadStatus(); render(); }, 1500);
     })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'status_overrides' }, async () => { await loadOverrides(); render(); })
     .on('presence', { event: 'sync' }, () => {
       const st = channel.presenceState();
       others = Object.entries(st).filter(([k]) => k !== me).map(([, metas]) => metas[metas.length - 1]);
@@ -419,7 +579,29 @@ async function loadStatus() {
     all.push(...data);
     if (data.length < 1000) break;
   }
-  status = all;
+  scanRows = all;
+  mergeStatus();
+}
+async function loadOverrides() {
+  const { data, error } = await sb.from('status_overrides').select('*');
+  if (error) return toast(error.message, true);
+  overrides = data;
+  mergeStatus();
+}
+function mergeStatus() {
+  const ov = new Map(overrides.map(o => [o.entity_type + '|' + o.entity_id + '|' + o.check_key, o]));
+  status = scanRows.map(r => {
+    const o = ov.get(r.entity_type + '|' + r.entity_id + '|' + r.check_key);
+    return o ? { ...r, state: o.state, scanState: r.state, override: o } : r;
+  });
+}
+async function setCell(etype, id, key, state) {
+  const { error } = state
+    ? await sb.from('status_overrides').upsert({ entity_type: etype, entity_id: id, check_key: key, state,
+        set_by_name: cap(me), updated_at: new Date().toISOString() })
+    : await sb.from('status_overrides').delete().eq('entity_type', etype).eq('entity_id', id).eq('check_key', key);
+  if (error) return toast(error.message, true);
+  await loadOverrides(); render();
 }
 async function patchTask(id, patch) {
   const { error } = await sb.from('tasks').update(patch).eq('id', id);
@@ -457,7 +639,16 @@ function render() {
   if (typingIn(a) && a.closest('.keep') && $('app').contains(a)) appStale = true;
   else {
     appStale = false;
+    // Keep scrolled areas (the status grid) and the page where they were.
+    const scrolls = {};
+    for (const el of $('app').querySelectorAll('[data-scroll]')) scrolls[el.dataset.scroll] = [el.scrollLeft, el.scrollTop];
+    const y = window.scrollY;
     $('app').replaceChildren(tab === 'status' ? statusView() : tab === 'tasks' ? tasksView() : pipelineView());
+    for (const el of $('app').querySelectorAll('[data-scroll]')) {
+      const sc = scrolls[el.dataset.scroll];
+      if (sc) { el.scrollLeft = sc[0]; el.scrollTop = sc[1]; }
+    }
+    window.scrollTo(0, y);
   }
   renderDrawer();
   sendPresence();
@@ -525,10 +716,10 @@ function renderDrawer() {
   const name = p?.name || fighter?.name || openSlug;
   const panel = h('aside', { id: 'drawer', class: 'drawer', onfocusout: () => setTimeout(() => drawerStale && renderDrawer(), 0) });
   panel.append(h('div', { class: 'row', style: 'justify-content:space-between' },
-    h('h2', {}, name),
+    h('div', { class: 'ent' }, avatar('fighter', openSlug, name, true), h('h2', {}, name)),
     h('div', { class: 'row' },
       h('a', { href: '#c/' + openSlug, target: '_blank', class: 'meta', title: 'Open this character in its own tab' }, 'Open in new tab'),
-      h('button', { onclick: close }, 'Close'))),
+      h('button', { class: 'ghost', onclick: close }, 'Close'))),
     h('div', { id: 'here-bar', style: 'margin-top:6px' }));
 
   // Pipeline: stage, model link, notes.
@@ -556,7 +747,7 @@ function renderDrawer() {
   const open = openTasksFor('fighter', openSlug);
   panel.append(h('h3', {}, 'Open tasks (' + open.length + ')'));
   for (const t of open) panel.append(h('div', { class: 'meta', style: 'margin:3px 0' },
-    h('span', { class: 'chip ' + t.owner }, t.owner), h('span', { class: 'chip' }, KIND_LABEL[t.kind] || t.kind), t.title + (t.slot ? ' · ' + t.slot : '')));
+    ownerChip(t.owner), kindChip(t.kind), t.title + (t.slot ? ' · ' + t.slot : '')));
   const tTitle = h('input', { type: 'text', placeholder: 'New task for ' + name, class: 'grow' });
   const addT = async () => {
     if (!tTitle.value.trim()) return;
@@ -608,81 +799,117 @@ function statusView() {
     .sort((a, b) => onlyProblems ? (b.fail * 3 + b.warn) - (a.fail * 3 + a.warn) : a.name.localeCompare(b.name));
   const totals = ['ok', 'warn', 'fail'].map(s => status.filter(r => r.entity_type === 'fighter' && r.state === s).length);
 
-  wrap.append(h('div', { class: 'row', style: 'margin-bottom:10px; justify-content:space-between' },
+  wrap.append(h('div', { class: 'card row', style: 'justify-content:space-between; padding:10px 14px' },
     h('div', { class: 'legend' },
       h('span', {}, h('span', { class: 'sw', style: 'background:var(--ok)' }), totals[0] + ' done'),
       h('span', {}, h('span', { class: 'sw', style: 'background:var(--warn)' }), totals[1] + ' shared / stand-in'),
       h('span', {}, h('span', { class: 'sw', style: 'background:var(--bad)' }), totals[2] + ' missing'),
+      h('span', {}, h('span', { class: 'sw', style: 'background:var(--ok); background-image:linear-gradient(135deg,#fff 0 28%,transparent 28%)' }), 'set by hand'),
       h('span', {}, 'scanned ' + new Date(scanned).toLocaleString())),
     h('label', { class: 'meta' }, h('input', { type: 'checkbox', checked: onlyProblems, onchange: e => { onlyProblems = e.target.checked; render(); } }),
       ' most work first')));
 
-  // Fighter matrix
+  // Fighter grid. Scrolls sideways; render() keeps its place (data-scroll).
   const head = h('tr', {}, h('th', { class: 'name' }, 'Fighter'),
     FIGHTER_COLS.map(([k, label, grp]) => h('th', { class: grp ? 'grp' : '', title: CHECK_LABEL[k] }, label)));
   const body = fighters.map(f => h('tr', {},
-    h('th', { class: 'name', title: f.fail + ' missing, ' + f.warn + ' shared', onclick: () => { location.hash = '#c/' + f.id; } },
-      f.name, f.fail ? h('span', { style: 'color:var(--bad); margin-left:6px; font-size:12px' }, f.fail + ' missing') : null),
+    h('th', { class: 'name', title: 'Open ' + f.name + "'s character page", onclick: () => { location.hash = '#c/' + f.id; } },
+      h('div', { class: 'row' }, avatar('fighter', f.id, f.name), f.name,
+        f.fail ? h('span', { style: 'color:var(--bad); font-size:12px; font-weight:600' }, f.fail + ' missing') : null)),
     FIGHTER_COLS.map(([k, , grp]) => {
       const r = ix.fighter[f.id][k];
       const sel = picked && picked.id === f.id && picked.key === k;
-      return h('td', { class: (r ? r.state : 'na') + (grp ? ' grp' : '') + (sel ? ' sel' : ''),
-        title: f.name + ' · ' + CHECK_LABEL[k] + (r?.detail ? ': ' + r.detail : ''), onclick: () => pick('fighter', f.id, k) });
+      return h('td', { class: (r ? r.state : 'na') + (r?.override ? ' manual' : '') + (grp ? ' grp' : '') + (sel ? ' sel' : ''),
+        title: f.name + ' · ' + CHECK_LABEL[k] + (r?.detail ? ': ' + r.detail : '') + (r?.override ? ' (set by hand)' : ''),
+        onclick: () => pick('fighter', f.id, k) });
     })));
-  wrap.append(h('div', { class: 'card' }, h('h2', { style: 'margin-top:0;font-size:16px' }, 'Fighters'),
-    h('div', { class: 'scroll' }, h('table', { class: 'mx' }, h('thead', {}, head), h('tbody', {}, body)))));
+  wrap.append(h('div', { class: 'card' }, h('h2', {}, 'Fighters'),
+    h('div', { class: 'scroll', 'data-scroll': 'fighters' }, h('table', { class: 'mx' }, h('thead', {}, head), h('tbody', {}, body)))));
 
   if (picked) wrap.append(detailCard(ix));
 
-  // Stage table
+  // Stage table: click a cell to see it / set it, the name for everything unfinished.
   const stages = E.stage.filter(s => ix.stage?.[s.id]);
-  wrap.append(h('div', { class: 'card' }, h('h2', { style: 'margin-top:0;font-size:16px' }, 'Stages'),
-    h('div', { class: 'scroll' }, h('table', { class: 'st' },
+  wrap.append(h('div', { class: 'card' }, h('h2', {}, 'Stages'),
+    h('div', { class: 'scroll', 'data-scroll': 'stages' }, h('table', { class: 'st' },
       h('tr', {}, h('th', {}, 'Stage'), STAGE_COLS.map(([, l]) => h('th', {}, l)), h('th', {}, 'Open tasks')),
-      stages.map(s => h('tr', { style: 'cursor:pointer', onclick: () => pick('stage', s.id, null) },
-        h('td', {}, s.name),
-        STAGE_COLS.map(([k]) => { const r = ix.stage[s.id][k]; return h('td', {}, h('span', { class: 'dot ' + (r?.state || '') }), r?.detail || ''); }),
+      stages.map(s => h('tr', { class: 'pick' },
+        h('td', { onclick: () => pick('stage', s.id, null) }, h('span', { class: 'ent' }, avatar('stage', s.id, s.name), s.name)),
+        STAGE_COLS.map(([k]) => {
+          const r = ix.stage[s.id][k];
+          return h('td', { onclick: () => pick('stage', s.id, k), title: 'Click to see or set this' },
+            h('span', { class: 'row', style: 'gap:0; flex-wrap:nowrap' }, h('span', { class: 'dot ' + (r?.state || '') }),
+              (r?.detail || '') + (r?.override ? ' · set by hand' : '')));
+        }),
         h('td', {}, '' + openTasksFor('stage', s.id).length)))))));
   return wrap;
 }
 
-function pick(etype, id, key) { picked = { etype, id, key }; render(); }
+function pick(etype, id, key) {
+  picked = { etype, id, key };
+  render();
+  // Bring the explanation into view without moving the grid.
+  requestAnimationFrame(() => document.querySelector('.detail')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+}
 
-// What a clicked cell says, the open tasks on it, and a one-click task for it.
+// What a clicked cell says, setting it by hand, its open tasks, and a one-click task for it.
 function detailCard(ix) {
   const { etype, id, key } = picked;
   const rows = ix[etype]?.[id] || {};
   const name = entityName(etype, id);
   const slot = key?.startsWith('slot:') ? key.slice(5) : null;
-  const card = h('div', { class: 'card' },
+  const card = h('div', { class: 'card detail' },
     h('div', { class: 'row', style: 'justify-content:space-between' },
-      h('strong', {}, name + (key ? ' · ' + CHECK_LABEL[key] : '')),
-      h('button', { onclick: () => { picked = null; render(); } }, 'Close')));
+      h('span', { class: 'ent', style: 'font-size:16px; font-weight:700' }, avatar(etype, id, name, true), name + (key ? ' · ' + CHECK_LABEL[key] : '')),
+      h('button', { class: 'ghost', onclick: () => { picked = null; render(); } }, 'Close')));
   const show = key ? [rows[key]].filter(Boolean)
     : Object.values(rows).filter(r => r.state === 'fail' || r.state === 'warn');
-  for (const r of show) card.append(h('div', { class: 'meta', style: 'margin:4px 0' },
-    h('span', { class: 'dot ' + r.state }), CHECK_LABEL[r.check_key] || r.check_key, r.detail ? ': ' + r.detail : ''));
+  for (const r of show) {
+    card.append(h('div', { class: 'meta', style: 'margin:6px 0' },
+      h('span', { class: 'dot ' + r.state }), h('b', { style: 'color:var(--ink)' }, STATE_LABEL[r.state]),
+      (key ? '' : (CHECK_LABEL[r.check_key] || r.check_key) + ' · ') + (r.override ? 'set by hand' : (r.detail || ''))));
+    if (r.override) card.append(h('div', { class: 'meta', style: 'margin:0 0 6px 15px' },
+      'Set by ' + (r.override.set_by_name || 'someone') + ' on ' + when(r.override.updated_at) + '. The scan says: ' +
+      STATE_LABEL[r.scanState] + (r.detail ? ' (' + r.detail + ')' : '') + '.'));
+  }
   if (!key && !show.length) card.append(h('p', { class: 'meta' }, 'Nothing missing.'));
-  const open = openTasksFor(etype, id, slot);
-  card.append(h('div', { style: 'margin-top:8px' }, h('strong', { style: 'font-size:13px' }, 'Open tasks (' + open.length + ')')));
-  for (const t of open) card.append(h('div', { class: 'meta' }, h('span', { class: 'chip ' + t.owner }, t.owner), t.title));
+
+  // Set this cell by hand: the board shows it over the scan until put back.
   const r = key && rows[key];
+  if (r) {
+    const choices = [['ok', '✓ Done'], ['warn', '◐ Shared / stand-in'], ['fail', '✕ Missing'], ['na', '– Not needed']];
+    card.append(h('div', { class: 'setstate' },
+      h('div', { class: 'fld', style: 'margin-bottom:4px' }, 'Set this by hand'),
+      h('div', { class: 'row' },
+        h('div', { class: 'seg' }, choices.map(([st, label]) => h('button', {
+          class: (r.override && r.state === st ? 'on ' + st : ''), title: 'Show this as ' + STATE_LABEL[st] + ' on the board',
+          onclick: () => setCell(etype, id, key, st) }, label))),
+        r.override ? h('button', { class: 'ghost', onclick: () => setCell(etype, id, key, null) }, "↺ Use the scan's answer") : null),
+      h('div', { class: 'hint', style: 'margin-top:4px' },
+        r.override ? 'The scan keeps checking; this stays until someone puts it back.'
+          : 'Marking it done also closes its tasks that close themselves.')));
+  }
+
+  const open = openTasksFor(etype, id, slot);
+  card.append(h('div', { style: 'margin-top:12px' }, h('div', { class: 'fld' }, 'Open tasks (' + open.length + ')')));
+  for (const t of open) card.append(h('div', { class: 'meta', style: 'margin:4px 0' }, ownerChip(t.owner), kindChip(t.kind), t.title));
   if (r && (r.state === 'fail' || r.state === 'warn')) {
     const kind = slot === 'Final Smash' ? 'finalSmash' : key === 'entrance' ? 'entrance' : slot ? 'anim' : 'fix';
-    const title = slot ? (r.detail.startsWith('shared') ? 'Own animation: ' + slot : 'Make ' + slot) : CHECK_LABEL[key] + ': ' + (r.detail || 'fix');
+    const title = slot ? ((r.detail || '').startsWith('shared') ? 'Own animation: ' + slot : 'Make ' + slot) : CHECK_LABEL[key] + ': ' + (r.detail || 'fix');
     // Non-move checks keep their name in `slot`, so clicking Add twice merges instead of making a copy.
     const add = (owner) => addTask({ title, kind, entity_type: etype, entity_id: id, slot: slot || CHECK_LABEL[key], owner, check_key: key, note: 'From the status board: ' + (r.detail || r.state), source: 'scanner' });
-    card.append(h('div', { class: 'row', style: 'margin-top:8px' }, 'Add "' + title + '" for',
-      h('button', { onclick: () => add(me) }, 'me'),
+    card.append(h('div', { class: 'row', style: 'margin-top:10px' }, h('span', { class: 'meta' }, 'Add "' + title + '" for'),
+      h('button', { onclick: () => add(me) }, 'Me'),
       h('button', { onclick: () => add(me === 'nathan' ? 'cooper' : 'nathan') }, me === 'nathan' ? 'Cooper' : 'Nathan'),
-      h('button', { onclick: () => add('team') }, 'team')));
+      h('button', { onclick: () => add('team') }, 'Team')));
   }
   return card;
 }
 
 function visible() {
   return tasks.filter(t => {
-    if (!showDone && (t.status === 'done' || t.status === 'dropped')) return false;
+    // Sorting by status shows every status; otherwise done / dropped only with "show done".
+    if (!showDone && sortBy !== 'status' && (t.status === 'done' || t.status === 'dropped')) return false;
     if (view === 'all') return true;
     if (view === 'team') return t.owner === 'team';
     const who = view === 'mine' ? me : view;
@@ -699,15 +926,15 @@ function tasksView() {
   const wrap = h('div');
   // Add form
   const title = h('input', { type: 'text', placeholder: 'What needs doing?', class: 'grow' });
-  const kind = select(KINDS.map(k => [k, KIND_LABEL[k]]), 'fix', () => {});
-  const etype = select([['', 'No fighter/stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], '', () => fillEntities());
+  const kind = select(KINDS.map(k => [k, KIND_STYLE[k][1] + '  ' + KIND_LABEL[k]]), 'fix', () => {});
+  const etype = select([['', 'No fighter / stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], '', () => fillEntities());
   const entity = h('select', { class: 'grow' });
   const slot = select([['', 'Any move'], ...E.slots], '', () => {});
   const owner = select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team (nobody yet)']], me, () => {});
-  const prio = select([['', 'Priority'], ...[1, 2, 3, 4, 5].map(n => [n, n + (n === 1 ? ' (top)' : '')])], '', () => {});
-  const note = h('input', { type: 'text', placeholder: 'Note (optional)', class: 'grow' });
+  const prio = select([['', 'Priority'], ...[1, 2, 3, 4, 5].map(n => [n, 'P' + n + (n === 1 ? ' (top)' : '')])], '', () => {});
+  const note = autoGrow(h('textarea', { placeholder: 'Note (optional)', class: 'grow' }));
   function fillEntities() {
-    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '-'),
+    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '—'),
       ...(E[etype.value] || []).map(x => h('option', { value: x.id }, x.name)));
     entity.disabled = !etype.value; slot.disabled = etype.value !== 'fighter';
   }
@@ -722,44 +949,50 @@ function tasksView() {
       priority_cooper: owner.value === 'cooper' || owner.value === 'both' ? p : null,
     };
     await addTask(t);
-    title.value = ''; note.value = '';
+    title.value = ''; note.value = ''; note.dispatchEvent(new Event('input'));
   };
   title.addEventListener('keydown', e => e.key === 'Enter' && add());
-  wrap.append(h('div', { class: 'card' },
-    h('div', { class: 'row' }, title, kind, etype, entity, slot),
-    h('div', { class: 'row', style: 'margin-top:8px' }, 'Goes on', owner, prio, note, h('button', { class: 'on', onclick: add }, 'Add'))));
+  wrap.append(h('div', { class: 'card addform' },
+    h('h2', { style: 'margin:0' }, 'New task'),
+    h('div', { class: 'row' }, title),
+    h('div', { class: 'row' }, kind, etype, entity, slot),
+    h('div', { class: 'row', style: 'align-items:flex-start' }, h('span', { class: 'meta', style: 'padding-top:7px' }, 'Goes on'), owner, prio, note,
+      h('button', { class: 'primary', onclick: add }, 'Add task'))));
 
-  // Filters
+  // Filters and sorting
   const views = [['mine', 'Mine'], ['nathan', 'Nathan'], ['cooper', 'Cooper'], ['team', 'Team backlog'], ['all', 'Everything']];
-  wrap.append(h('div', { class: 'row', style: 'margin-bottom:10px' },
-    views.map(([id, label]) => h('button', { class: view === id ? 'on' : '', onclick: () => { view = id; render(); } }, label)),
-    h('label', { class: 'meta' }, h('input', { type: 'checkbox', checked: showDone, onchange: (e) => { showDone = e.target.checked; render(); } }), ' show done'),
+  wrap.append(h('div', { class: 'row', style: 'margin-bottom:12px' },
+    h('div', { class: 'seg' }, views.map(([id, label]) => h('button', { class: view === id ? 'on' : '', onclick: () => { view = id; render(); } }, label))),
+    sortBy === 'status' ? null
+      : h('label', { class: 'meta' }, h('input', { type: 'checkbox', checked: showDone, onchange: (e) => { showDone = e.target.checked; render(); } }), ' show done'),
     h('label', { class: 'fld', style: 'margin-left:auto' }, 'Sort by',
-      select([['priority', 'Priority'], ['character', 'Character / stage'], ['type', 'Task type']], sortBy, v => {
+      select([['priority', 'Priority'], ['status', 'Status'], ['character', 'Character / stage'], ['type', 'Task type']], sortBy, v => {
         sortBy = v; try { localStorage.setItem('board.sortBy', v); } catch (e) {} render();
       }))));
 
   const byRank = (a, b) => rank(a) - rank(b) || a.created_at.localeCompare(b.created_at);
   const list = visible().sort(byRank);
-  const card = h('div', { class: 'card', style: 'padding:0' });
-  if (!list.length) card.append(h('p', { class: 'meta', style: 'padding:12px' }, 'Nothing here.'));
+  const card = h('div', { class: 'card tasks' });
+  if (!list.length) card.append(h('p', { class: 'meta', style: 'padding:14px' }, 'Nothing here.'));
   if (sortBy === 'priority') for (const t of list) card.append(taskRow(t));
   else {
-    // Groups in name order (fighters, then stages, then everything else) or in the kinds' order; priority within each.
-    const groupOf = sortBy === 'type'
-      ? (t) => [String(KINDS.indexOf(t.kind)).padStart(2, '0'), KIND_LABEL[t.kind] || t.kind]
-      : (t) => !t.entity_id ? ['3', 'Not about one character or stage']
-        : [(t.entity_type === 'fighter' ? '1' : '2') + entityName(t.entity_type, t.entity_id).toLowerCase(),
-           entityName(t.entity_type, t.entity_id) + (t.entity_type === 'stage' ? ' (stage)' : '')];
+    // Groups: in the statuses' order, the kinds' order, or by name (fighters, then stages, then the rest); priority within each.
+    const groupOf = sortBy === 'status' ? (t) => [String(STATUSES.indexOf(t.status)), t.status]
+      : sortBy === 'type' ? (t) => [String(KINDS.indexOf(t.kind)).padStart(2, '0'), t.kind]
+      : (t) => !t.entity_id ? ['3', ''] : [(t.entity_type === 'fighter' ? '1' : '2') + entityName(t.entity_type, t.entity_id).toLowerCase(), t.entity_id];
     const groups = new Map();
-    for (const t of list) { const [k, label] = groupOf(t); if (!groups.has(k)) groups.set(k, { label, items: [] }); groups.get(k).items.push(t); }
+    for (const t of list) { const [k, g] = groupOf(t); if (!groups.has(k)) groups.set(k, { g, items: [] }); groups.get(k).items.push(t); }
     for (const k of [...groups.keys()].sort()) {
-      const g = groups.get(k);
-      const first = g.items[0];
-      const head = sortBy === 'character' && first.entity_type === 'fighter'
-        ? h('a', { href: '#c/' + first.entity_id, class: 'clink', title: 'Open the character page' }, g.label) : g.label;
-      card.append(h('div', { class: 'group' }, head, h('span', { class: 'meta' }, ' ' + g.items.length)));
-      for (const t of g.items) card.append(taskRow(t));
+      const { g, items } = groups.get(k);
+      const first = items[0];
+      const head = sortBy === 'status' ? h('span', { class: 'chip stp ' + g }, STATUS_ICON[g] + ' ' + STATUS_LABEL[g])
+        : sortBy === 'type' ? kindChip(g)
+        : !g ? h('span', {}, 'Not about one character or stage')
+        : h('span', { class: 'ent' }, avatar(first.entity_type, g, entityName(first.entity_type, g)),
+            first.entity_type === 'fighter' ? h('a', { href: '#c/' + g, class: 'clink', title: 'Open the character page' }, entityName('fighter', g))
+              : entityName('stage', g) + ' (stage)');
+      card.append(h('div', { class: 'group' }, head, h('span', { class: 'count' }, items.length)));
+      for (const t of items) card.append(taskRow(t));
     }
   }
   wrap.append(card, h('p', { class: 'meta' }, list.length + ' shown, ' + tasks.length + ' total'));
@@ -767,42 +1000,37 @@ function tasksView() {
 }
 
 function taskRow(t) {
-  const where = !t.entity_id ? null
-    : t.entity_type === 'fighter'
-      ? h('span', {}, h('a', { href: '#c/' + t.entity_id, class: 'clink', title: 'Open the character page' }, entityName('fighter', t.entity_id)), t.slot ? ' · ' + t.slot : '')
-      : h('span', {}, entityName(t.entity_type, t.entity_id) + (t.slot ? ' · ' + t.slot : ''));
-  const pri = (who) => select([['', 'none'], ...[1, 2, 3, 4, 5].map(n => [n, n === 1 ? '1 (top)' : '' + n])], t['priority_' + who] || '',
+  const pri = (who) => select([['', '—'], ...[1, 2, 3, 4, 5].map(n => [n, 'P' + n + (n === 1 ? ' top' : '')])], t['priority_' + who] || '',
     v => patchTask(t.id, { ['priority_' + who]: v ? +v : null }));
   const fld = (label, tip, control) => h('label', { class: 'fld', title: tip }, label, control);
   const lastNote = (t.notes || []).filter(n => n.text).slice(-1)[0];
   if (editing === t.id) return taskEditor(t, fld, pri);
-  return h('div', { id: 'task-' + t.id, class: 'task' + (t.status === 'done' ? ' done' : '') },
+  return h('div', { id: 'task-' + t.id, class: 'task ' + t.status, style: '--k:' + kindColor(t.kind) },
     h('div', {},
-      h('button', { class: 'title linkish', title: 'Edit this task', onclick: () => { editing = t.id; render(); } }, t.title),
-      h('div', { class: 'meta' },
-        h('span', { class: 'chip ' + t.owner }, t.owner),
-        h('span', { class: 'chip' }, KIND_LABEL[t.kind] || t.kind),
-        where,
-        t.effort && h('span', {}, 'effort ' + t.effort))),
+      h('button', { class: 'title linkish', title: 'Open this task to edit it', onclick: () => { editing = t.id; render(); } }, t.title),
+      h('div', { class: 'meta', style: 'margin-top:5px' },
+        ownerChip(t.owner), kindChip(t.kind),
+        t.entity_id ? entityTag(t.entity_type, t.entity_id, t.slot) : null,
+        t.effort ? h('span', { class: 'chip' }, 'effort ' + t.effort) : null)),
     h('div', { class: 'ctl' },
       fld('On the list of', 'Whose list this task is on', select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team']], t.owner, v => patchTask(t.id, { owner: v }))),
-      fld("Nathan's priority", "How urgent this is for Nathan (1 = most urgent)", pri('nathan')),
-      fld("Cooper's priority", "How urgent this is for Cooper (1 = most urgent)", pri('cooper')),
-      fld('Status', 'Where the work stands', select(STATUSES, t.status, v => patchTask(t.id, { status: v })))),
-    lastNote && h('div', { class: 'note' }, lastNote.by + ': ' + lastNote.text));
+      fld("Nathan's priority", "How urgent this is for Nathan (P1 = most urgent)", pri('nathan')),
+      fld("Cooper's priority", "How urgent this is for Cooper (P1 = most urgent)", pri('cooper')),
+      fld('Status', 'Where the work stands', statusSelect(t))),
+    lastNote && h('div', { class: 'note' }, h('b', {}, cap(lastNote.by) + ': '), lastNote.text));
 }
 
-// A task opened for editing: everything about it, all its notes, a box for a new note.
+// A task opened for editing: everything about it, its notes (click one to change it), a box for a new note.
 // Owner, priorities and status save as soon as they change; the rest saves with Save.
 function taskEditor(t, fld, pri) {
-  const title = h('input', { type: 'text', value: t.title, class: 'grow' });
-  const kind = select(KINDS.map(k => [k, KIND_LABEL[k]]), t.kind, () => {});
-  const etype = select([['', 'No fighter/stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], t.entity_type || '', () => fillEntities());
+  const title = h('input', { type: 'text', value: t.title, class: 'grow', style: 'font-weight:600; font-size:15px' });
+  const kind = select(KINDS.map(k => [k, KIND_STYLE[k][1] + '  ' + KIND_LABEL[k]]), t.kind, () => {});
+  const etype = select([['', 'No fighter / stage'], ['fighter', 'Fighter'], ['stage', 'Stage']], t.entity_type || '', () => fillEntities());
   const entity = h('select', { class: 'grow' });
   const slot = select([['', 'Any move'], ...E.slots], t.slot || '', () => {});
   const effort = select([['', 'not set'], ...[1, 2, 3, 4, 5].map(n => [n, n + (n === 1 ? ' (quick)' : n === 5 ? ' (big)' : '')])], t.effort || '', () => {});
   function fillEntities() {
-    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '-'),
+    entity.replaceChildren(h('option', { value: '' }, etype.value ? 'Pick one' : '—'),
       ...(E[etype.value] || []).map(x => h('option', { value: x.id, selected: x.id === t.entity_id }, x.name)));
     entity.disabled = !etype.value; slot.disabled = etype.value !== 'fighter';
   }
@@ -824,13 +1052,6 @@ function taskEditor(t, fld, pri) {
     if (error) return toast(error.message, true);
     toast('Saved'); close();
   };
-  const noteBox = h('input', { type: 'text', placeholder: 'Add a note and press Enter', class: 'grow' });
-  const addNote = async () => {
-    if (!noteBox.value.trim()) return;
-    await patchTask(t.id, { notes: [...(t.notes || []), { by: me, at: new Date().toISOString(), text: noteBox.value.trim() }] });
-    noteBox.value = '';
-  };
-  noteBox.addEventListener('keydown', e => e.key === 'Enter' && addNote());
   title.addEventListener('keydown', e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') close(); });
   const del = async () => {
     if (!confirm('Delete "' + t.title + '" for both of you? Setting its status to "dropped" keeps it in the history instead.')) return;
@@ -838,25 +1059,60 @@ function taskEditor(t, fld, pri) {
     if (error) return toast(error.message, true);
     close();
   };
-  const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); };
-  return h('div', { class: 'task editing keep' },
-    h('div', { style: 'grid-column:1/-1; display:flex; flex-direction:column; gap:8px' },
+
+  // Notes: each one opens for editing when clicked. Changes save the task's whole note list.
+  const saveNotes = (notes) => patchTask(t.id, { notes });
+  const all = t.notes || [];
+  const noteList = h('div', { class: 'notes' });
+  const showNote = (n, i) => {
+    const el = h('button', { type: 'button', class: 'nt', title: 'Click to edit this note' },
+      h('span', { class: 'by' }, cap(n.by)), when(n.at) ? h('span', { class: 'when' }, when(n.at)) : null, n.text,
+      n.edited_at ? h('span', { class: 'edited' }, '  (edited' + (n.edited_by ? ' by ' + cap(n.edited_by) : '') + ')') : null);
+    el.onclick = () => {
+      const box = autoGrow(h('textarea', { value: n.text, style: 'width:100%' }));
+      const ok = () => {
+        const text = box.value.trim();
+        if (!text) return toast('A note needs some text: use Delete to remove it', true);
+        const notes = all.slice(); notes[i] = { ...n, text, edited_by: me, edited_at: new Date().toISOString() };
+        saveNotes(notes);
+      };
+      const ed = h('div', { class: 'ntedit' }, box,
+        h('div', { class: 'row', style: 'justify-content:space-between' },
+          h('div', { class: 'row' }, h('button', { class: 'primary', onclick: ok }, 'Save note'), h('button', { class: 'ghost', onclick: () => ed.replaceWith(showNote(n, i)) }, 'Cancel')),
+          h('button', { class: 'ghost danger', onclick: () => { if (confirm('Delete this note?')) { const notes = all.slice(); notes.splice(i, 1); saveNotes(notes); } } }, 'Delete note')));
+      box.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) ok(); if (e.key === 'Escape') ed.replaceWith(showNote(n, i)); });
+      el.replaceWith(ed);
+      box.focus();
+    };
+    return el;
+  };
+  all.forEach((n, i) => { if (n.text) noteList.append(showNote(n, i)); });
+  const noteBox = autoGrow(h('textarea', { placeholder: 'Add a note…', class: 'grow' }));
+  const addNote = async () => {
+    if (!noteBox.value.trim()) return;
+    await saveNotes([...all, { by: me, at: new Date().toISOString(), text: noteBox.value.trim() }]);
+    noteBox.value = '';
+  };
+  noteBox.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); });
+
+  return h('div', { id: 'task-' + t.id, class: 'task editing keep', style: '--k:' + kindColor(t.kind) },
+    h('div', { style: 'grid-column:1/-1; display:flex; flex-direction:column; gap:10px' },
       h('div', { class: 'row' }, title),
       h('div', { class: 'row' }, fld('Kind', '', kind), fld('About', '', etype), fld('Which', '', entity), fld('Move', '', slot), fld('Effort', '1 = quick, 5 = big', effort)),
       h('div', { class: 'row' },
         fld('On the list of', 'Whose list this task is on', select([['nathan', 'Nathan'], ['cooper', 'Cooper'], ['both', 'Both'], ['team', 'Team']], t.owner, v => patchTask(t.id, { owner: v }))),
-        fld("Nathan's priority", "1 = most urgent", pri('nathan')),
-        fld("Cooper's priority", "1 = most urgent", pri('cooper')),
-        fld('Status', '', select(STATUSES, t.status, v => patchTask(t.id, { status: v })))),
-      t.check_key ? h('div', { class: 'meta' }, 'Closes itself when the scan shows ' + (CHECK_LABEL[t.check_key] || t.check_key) + ' done.') : null,
+        fld("Nathan's priority", "P1 = most urgent", pri('nathan')),
+        fld("Cooper's priority", "P1 = most urgent", pri('cooper')),
+        fld('Status', '', statusSelect(t))),
+      t.check_key ? h('div', { class: 'hint' }, '⚡ Closes itself when the board shows ' + (CHECK_LABEL[t.check_key] || t.check_key) + ' done.') : null,
       h('div', {},
-        h('strong', { style: 'font-size:13px' }, 'Notes'),
-        ...(t.notes || []).filter(n => n.text).map(n => h('div', { class: 'meta', style: 'margin:3px 0' },
-          h('strong', {}, n.by), when(n.at) && h('span', {}, when(n.at)), h('span', {}, n.text))),
-        h('div', { class: 'row', style: 'margin-top:4px' }, noteBox)),
+        h('div', { class: 'fld', style: 'margin-bottom:6px' }, 'Notes'),
+        noteList,
+        h('div', { class: 'row', style: 'margin-top:8px; align-items:flex-start' }, noteBox, h('button', { onclick: addNote }, 'Add note')),
+        h('div', { class: 'hint', style: 'margin-top:4px' }, 'Click a note to edit it. ⌘ / Ctrl + Enter adds or saves.')),
       h('div', { class: 'row', style: 'justify-content:space-between' },
-        h('div', { class: 'row' }, h('button', { class: 'on', onclick: save }, 'Save'), h('button', { onclick: close }, 'Cancel')),
-        h('button', { onclick: del, style: 'color:var(--bad)' }, 'Delete'))));
+        h('div', { class: 'row' }, h('button', { class: 'primary', onclick: save }, 'Save'), h('button', { class: 'ghost', onclick: close }, 'Cancel')),
+        h('button', { class: 'ghost danger', onclick: del }, 'Delete task'))));
 }
 
 function pipelineView() {
@@ -869,22 +1125,27 @@ function pipelineView() {
     else { name.value = ''; url.value = ''; }
   };
   name.addEventListener('keydown', e => e.key === 'Enter' && add());
-  const cols = PIPE.map(stage => h('div', { class: 'col' },
-    h('h3', {}, PIPE_LABEL[stage] + ' (' + pipe.filter(p => p.stage === stage).length + ')'),
-    pipe.filter(p => p.stage === stage).map(p => {
-      const nDrafts = drafts.filter(d => d.fighter_id === p.slug && d.body).length;
-      const nTasks = openTasksFor('fighter', p.slug).length;
-      return h('div', { class: 'pcard' },
-        // A link, so cmd / ctrl-click opens the character in a new tab.
-        h('a', { class: 'pname', href: '#c/' + p.slug, title: 'Open design info' }, p.name),
-        h('div', { class: 'meta' },
-          nDrafts ? h('span', {}, nDrafts + ' move' + (nDrafts > 1 ? 's' : '') + ' drafted') : null,
-          nTasks ? h('span', {}, nTasks + ' open task' + (nTasks > 1 ? 's' : '')) : null,
-          p.model_url && h('a', { href: p.model_url, target: '_blank', rel: 'noopener noreferrer' }, 'model')),
-        select(PIPE.map(s => [s, PIPE_LABEL[s]]), p.stage, v => patchPipe(p.id, { stage: v })));
-    })));
+  const cols = PIPE.map(stage => {
+    const cards = pipe.filter(p => p.stage === stage);
+    return h('div', { class: 'col ' + stage },
+      h('h3', {}, h('span', {}, PIPE_LABEL[stage]), h('span', { class: 'count' }, cards.length)),
+      cards.map(p => {
+        const nDrafts = drafts.filter(d => d.fighter_id === p.slug && d.body).length;
+        const nTasks = openTasksFor('fighter', p.slug).length;
+        return h('div', { class: 'pcard' },
+          h('div', { class: 'top' }, avatar('fighter', p.slug, p.name),
+            // A link, so cmd / ctrl-click opens the character in a new tab.
+            h('a', { class: 'pname', href: '#c/' + p.slug, title: 'Open the character page' }, p.name)),
+          (nDrafts || nTasks || p.model_url) ? h('div', { class: 'meta' },
+            nDrafts ? h('span', { class: 'chip' }, '✍️ ' + nDrafts + ' move' + (nDrafts > 1 ? 's' : '')) : null,
+            nTasks ? h('span', { class: 'chip' }, '📋 ' + nTasks + ' task' + (nTasks > 1 ? 's' : '')) : null,
+            p.model_url ? h('a', { href: p.model_url, target: '_blank', rel: 'noopener noreferrer', class: 'chip' }, '🧊 model') : null) : null,
+          select(PIPE.map(s => [s, PIPE_LABEL[s]]), p.stage, v => patchPipe(p.id, { stage: v })));
+      }));
+  });
   return h('div', {},
-    h('div', { class: 'card' }, h('div', { class: 'row' }, name, url, h('button', { class: 'on', onclick: add }, 'Add'))),
+    h('div', { class: 'card' }, h('h2', {}, 'Add a character idea'),
+      h('div', { class: 'row' }, name, url, h('button', { class: 'primary', onclick: add }, 'Add'))),
     h('div', { class: 'cols' }, cols));
 }
 

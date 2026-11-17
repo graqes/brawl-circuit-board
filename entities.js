@@ -66,6 +66,50 @@ window.ENTITIES = {
    "name": "Donny"
   },
   {
+   "id": "draft_brik",
+   "name": "Brik"
+  },
+  {
+   "id": "draft_marrow",
+   "name": "Marrow"
+  },
+  {
+   "id": "draft_nib",
+   "name": "Nib"
+  },
+  {
+   "id": "draft_pip",
+   "name": "Pip"
+  },
+  {
+   "id": "draft_rattle",
+   "name": "Rattle"
+  },
+  {
+   "id": "draft_rivet",
+   "name": "Rivet"
+  },
+  {
+   "id": "draft_sable",
+   "name": "Sable"
+  },
+  {
+   "id": "draft_talon",
+   "name": "Talon"
+  },
+  {
+   "id": "draft_vanta",
+   "name": "Vanta"
+  },
+  {
+   "id": "draft_vesper",
+   "name": "Vesper"
+  },
+  {
+   "id": "draft_zeph",
+   "name": "Zeph"
+  },
+  {
    "id": "freddy",
    "name": "Freddy Fazbear"
   },
@@ -228,7 +272,7 @@ window.ENTITIES = {
    "name": "Circuit Arena"
   },
   {
-   "id": "cityoftears",
+   "id": "cityoftears_battlefield_revamp",
    "name": "City of Tears"
   },
   {
@@ -240,19 +284,23 @@ window.ENTITIES = {
    "name": "Doofenshmirtz Evil Inc."
   },
   {
-   "id": "doofinterior",
+   "id": "doof_lab_living",
    "name": "Doofenshmirtz's Lab"
   },
   {
-   "id": "drunkenclam",
+   "id": "drunkenclam_exterior_walkoff",
    "name": "The Drunken Clam"
+  },
+  {
+   "id": "earthkingdom_battlefield",
+   "name": "Earth Kingdom"
   },
   {
    "id": "finalline",
    "name": "Final Line"
   },
   {
-   "id": "fnafoffice",
+   "id": "fnafoffice_vent_platform",
    "name": "Security Office"
   },
   {
@@ -264,7 +312,7 @@ window.ENTITIES = {
    "name": "Hidden Leaf Village"
   },
   {
-   "id": "inkwellcarnival",
+   "id": "inkwell_carnival_walkoff",
    "name": "Inkwell Carnival"
   },
   {
@@ -272,52 +320,72 @@ window.ENTITIES = {
    "name": "Inkwell Garden"
   },
   {
-   "id": "jadepalace",
+   "id": "jadepalace_battlefield_revamp",
    "name": "Jade Palace"
   },
   {
-   "id": "lavalair",
-   "name": "Lava Room"
+   "id": "kfp_summit_living",
+   "name": "Peach Tree of Heavenly Wisdom"
   },
   {
-   "id": "lootlake",
+   "id": "lavalair",
+   "name": "Lava Lair"
+  },
+  {
+   "id": "lego_cantina_closed_battlefield",
+   "name": "LEGO Cantina"
+  },
+  {
+   "id": "lootlake_living",
    "name": "Loot Lake"
   },
   {
-   "id": "nightclub",
+   "id": "mystery_shack_rain_walkoff",
+   "name": "Mystery Shack (Night + Rain)"
+  },
+  {
+   "id": "mystery_shack_walkoff",
+   "name": "Mystery Shack (Day)"
+  },
+  {
+   "id": "mysteryshack",
+   "name": "The Mystery Shack"
+  },
+  {
+   "id": "mysteryshackbasement",
+   "name": "The Mystery Shack: Basement"
+  },
+  {
+   "id": "newsession_battlefield",
+   "name": "New Session"
+  },
+  {
+   "id": "newworld_walkoff",
+   "name": "New World"
+  },
+  {
+   "id": "nightclub_disco_closed",
    "name": "Night Club"
   },
   {
-   "id": "owca",
-   "name": "OWCA Lair"
-  },
-  {
-   "id": "peachtree",
-   "name": "Peach Tree of Heavenly Wisdom (Day)"
-  },
-  {
-   "id": "peachtreenight",
-   "name": "Peach Tree of Heavenly Wisdom (Night)"
+   "id": "perry_lair_living",
+   "name": "Perry's Lair"
   },
   {
    "id": "pizzaplanet",
    "name": "Pizza Planet"
   },
   {
-   "id": "plaza",
+   "id": "plaza_street_walkoff",
    "name": "The Plaza"
   },
   {
-   "id": "polus",
+   "id": "polus_lava_battlefield",
    "name": "Polus"
   },
   {
-   "id": "sanfransokyo",
+   "id": "sanfransokyo_hover",
    "name": "San Fransokyo"
-  },
-  {
-   "id": "sanfransokyobay",
-   "name": "San Fransokyo Bay"
   },
   {
    "id": "southparkelementary",
@@ -328,19 +396,39 @@ window.ENTITIES = {
    "name": "Space Shuttle"
   },
   {
-   "id": "sugarrush",
-   "name": "Sugar Rush"
+   "id": "spiritrealm_battlefield",
+   "name": "Spirit Realm"
+  },
+  {
+   "id": "sugar_rush_candy_platform",
+   "name": "Sugar Rush (Battlefield)"
+  },
+  {
+   "id": "sugar_rush_race_walkoff",
+   "name": "Sugar Rush (Walk-Off)"
   },
   {
    "id": "summit",
    "name": "Microsoft Paint"
   },
   {
-   "id": "titanslivingroom",
+   "id": "thecircuit",
+   "name": "The Circuit"
+  },
+  {
+   "id": "thefinalline",
+   "name": "Final Line"
+  },
+  {
+   "id": "thetwinspire",
+   "name": "Twin Spire"
+  },
+  {
+   "id": "titans_room_living",
    "name": "Titans Tower: Inside"
   },
   {
-   "id": "titanstower",
+   "id": "titans_tower_living",
    "name": "Titans Tower"
   },
   {
@@ -350,6 +438,10 @@ window.ENTITIES = {
   {
    "id": "twinspire",
    "name": "Twin Spire"
+  },
+  {
+   "id": "valhalla_covenant_platform",
+   "name": "Valhalla"
   },
   {
    "id": "valleyend",
